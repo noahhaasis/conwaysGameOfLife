@@ -12,7 +12,6 @@
 #define FALSE 0
 #define TRUE 1
 #define CELL_SIZE 20
-#define REFRESH_RATE 1000
 
 typedef struct
 {

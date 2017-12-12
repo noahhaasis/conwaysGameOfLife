@@ -50,6 +50,7 @@ int main( int argc, char* argv[ ] )
 	int living_cells = 0;
 	SDL_Event e;
 	Uint32 last_update_time = 1000;
+	unsigned int refresh_rate = 1000;
 
 	uint8_t quit = FALSE;
 	uint8_t paused = FALSE;
@@ -62,10 +63,31 @@ int main( int argc, char* argv[ ] )
 		// Handle all input events
 		while ( SDL_PollEvent( &e ) != 0)
 		{
-			if ( e.type == SDL_QUIT || e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_Q )
+			if ( e.type == SDL_QUIT)
 				quit = TRUE;
-			else if ( e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_SPACE )
-				paused = !paused;
+			else if ( e.type == SDL_KEYDOWN)
+			{
+				switch ( e.key.keysym.scancode )
+				{
+				case SDL_SCANCODE_SPACE:
+					paused = !paused;
+					break;
+				case SDL_SCANCODE_Q:
+					quit = TRUE;
+					break;
+				case SDL_SCANCODE_UP:
+					if ( refresh_rate > 100 )
+						refresh_rate -= 100;
+					break;
+				case SDL_SCANCODE_DOWN:
+					if ( refresh_rate < 10000 )
+						refresh_rate += 100;
+					break;
+				default:
+					break;
+				}
+			}
+			
 			else if ( e.type == SDL_MOUSEBUTTONUP )
 			{
 				int board_x = e.button.x / CELL_SIZE;
@@ -74,7 +96,7 @@ int main( int argc, char* argv[ ] )
 			}
 		}
 		
-		if ( (SDL_GetTicks( ) - last_update_time) < REFRESH_RATE )
+		if ( (SDL_GetTicks( ) - last_update_time) < refresh_rate )
 			continue;
 
 		if ( !paused )
@@ -88,7 +110,7 @@ int main( int argc, char* argv[ ] )
 		// If all cells are dead print the board and exit the game loop
 		if ( living_cells <= 0 )
 		{
-			SDL_Delay( REFRESH_RATE );
+			SDL_Delay( refresh_rate );
 			draw_board( cell_board , renderer);
 			break;
 		}

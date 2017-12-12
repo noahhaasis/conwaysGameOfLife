@@ -16,7 +16,8 @@
 
 typedef struct
 {
-	int size;
+	int rows;
+	int columns;
 	uint8_t grid[ ];
 } board;
 
@@ -25,7 +26,7 @@ typedef struct
 * Initializes a board with a given size and a given number of
 * living cells.
 */
-board* init_board( int size, int living_cell_count );
+board* init_board( int rows, int columns, int living_cell_count );
 
 /**
 * Updates the board's state and return the number of living cells.

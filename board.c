@@ -1,16 +1,18 @@
 #include "board.h"
 
 
-board* init_board( int size, int living_cell_count )
+board* init_board( int rows, int columns, int living_cell_count )
 {
 	srand( time( NULL ) );
 	// Allocate the board
-	board* b = malloc( sizeof( board ) + ( size * size ) * sizeof( uint8_t ) );
+	board* b = malloc( sizeof( board ) + ( rows * columns ) * sizeof( uint8_t ) );
+	b->rows = rows;
+	b->columns = columns;
 	// Populate the board
 	int rand_coord;
 	for ( int i = 0; i < living_cell_count; i++ )
 	{
-		rand_coord = rand( ) % ( size*size );
+		rand_coord = rand( ) % ( rows*columns );
 		if ( b->grid[ rand_coord ] == TRUE )
 		{
 			i--;
@@ -18,15 +20,14 @@ board* init_board( int size, int living_cell_count )
 		}
 		b->grid[ rand_coord ] = TRUE;
 	}
-	for ( int i = 0; i < size; i++ )
+	for ( int i = 0; i < rows; i++ )
 	{
-		for ( int j = 0; j < size; j++ )
+		for ( int j = 0; j < columns; j++ )
 		{
-			if ( !(b->grid[ i * size + j ] == TRUE) )
-				b->grid[ i * size + j ] = FALSE;
+			if ( !(cell_state(j, i, b) == TRUE))
+				change_cell_state(j, i, FALSE, b);
 		}
 	}
-	b->size = size;
 	return b;
 }
 
@@ -34,15 +35,16 @@ board* init_board( int size, int living_cell_count )
 int update_board( board* b )
 {
 	// Allocate a temporary board
-	int board_byte_size = sizeof( board ) + ( b->size*b->size ) * sizeof( uint8_t );
+	int board_byte_size = sizeof( board ) + ( b->rows*b->columns ) * sizeof( uint8_t );
 	board* temp_board = malloc( board_byte_size );
-	temp_board->size = b->size;
+	temp_board->rows = b->rows;
+	temp_board->columns = b->columns;
 
 	// Iterate over the given board
 	int living_cells_count = 0;
-	for ( int i = 0; i < b->size; i++ )
+	for ( int i = 0; i < b->rows; i++ )
 	{
-		for ( int j = 0; j < b->size; j++ )
+		for ( int j = 0; j < b->columns; j++ )
 		{
 			if ( change_cell_state( j, i, updated_cell_state( j, i, b ), temp_board ) )
 				living_cells_count++;
@@ -58,9 +60,9 @@ int update_board( board* b )
 
 int cell_state( int x, int y, board* b )
 {
-	if ( x < 0 || y < 0 || x >= b->size || y >= b->size )
+	if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
 		return FALSE;
-	return b->grid[ y*b->size + x ];
+	return b->grid[ y*b->columns + x ];
 }
 
 
@@ -86,9 +88,9 @@ int updated_cell_state( int x, int y, board* b )
 
 int change_cell_state( int x, int y, int state, board* b )
 {
-	if ( x < 0 || y < 0 || x >= b->size || y >= b->size )
+	if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
 		return 0;
-	return b->grid[ y*b->size + x ] = state;
+	return b->grid[ y*b->columns + x ] = state;
 }
 
 
@@ -99,9 +101,9 @@ void draw_board( board* b, SDL_Renderer* renderer )
 	rectangle.w = rectangle.h = CELL_SIZE;
 
 	// Iterate over all cells and draw them to the renderer
-	for ( int row = 0; row < b->size; row++ )
+	for ( int row = 0; row < b->rows; row++ )
 	{
-		for ( int column = 0; column < b->size; column++ )
+		for ( int column = 0; column < b->columns; column++ )
 		{
 			// Draw black squares for dead cells and white squares for living cells
 			cell_color = cell_state( column, row, b ) ? 255 : 0;

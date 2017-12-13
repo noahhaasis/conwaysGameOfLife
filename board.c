@@ -116,3 +116,12 @@ void draw_board( board* b, SDL_Renderer* renderer )
 	// Draw the renderer to the screen
 	SDL_RenderPresent( renderer );
 }
+
+void kill_all_cells( board * b )
+{
+	for ( int row = 0; row < b->rows; row++ )
+	{
+		for ( int column = 0; column < b->columns; column++ )
+			change_cell_state( column, row, FALSE,  b );
+	}
+}

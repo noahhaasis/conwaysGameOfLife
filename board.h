@@ -11,7 +11,7 @@
 
 #define FALSE 0
 #define TRUE 1
-#define CELL_SIZE 20
+#define CELL_SIZE 10
 
 typedef struct
 {
@@ -52,5 +52,10 @@ int change_cell_state( int x, int y, int state, board* b );
 * Draws the given board to the window.
 */
 void draw_board( board* b, SDL_Renderer* renderer);
+
+/**
+* Kills all cells in the given board.
+*/
+void kill_all_cells( board* b );
 
 #endif

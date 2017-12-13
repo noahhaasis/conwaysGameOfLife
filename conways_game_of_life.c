@@ -1,7 +1,17 @@
+/**
+* A implementation of Conway's game of life writen in
+* the C programming language using the SDL library.
+*
+* Keybindings:
+*	Q			 - Quit
+*	K			 - Kill all cells
+*   R            - Repopulate the board
+*	Space		 - Pause
+*	Up-Arrow	 - Speed the simulation up
+*	Down-Arrow	 - Slow the simulation down
+*	Mouse button - Change the clicked cell's state
+*/
 #include "board.h"
-
-
-void print_board( board* b ); // Print the board for the sake of debugging
 
 
 int main( int argc, char* argv[ ] )
@@ -66,7 +76,7 @@ int main( int argc, char* argv[ ] )
 	while ( !quit )
 	{
 		// Handle all input events
-		while ( SDL_PollEvent( &e ) != 0 )
+		while ( SDL_PollEvent( &e ) )
 		{
 			if ( e.type == SDL_QUIT )
 				quit = TRUE;
@@ -91,6 +101,13 @@ int main( int argc, char* argv[ ] )
 				case SDL_SCANCODE_K:
 					kill_all_cells( cell_board );
 					break;
+				case SDL_SCANCODE_R:
+				{
+					int rows = cell_board->rows;
+					int columns = cell_board->columns;
+					free( cell_board );
+					cell_board = init_board(rows, columns, atoi(argv[1]) );
+				} break;
 				default:
 					break;
 				}

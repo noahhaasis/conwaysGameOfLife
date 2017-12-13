@@ -8,6 +8,14 @@ board* init_board( int rows, int columns, int living_cell_count )
 	board* b = malloc( sizeof( board ) + ( rows * columns ) * sizeof( uint8_t ) );
 	b->rows = rows;
 	b->columns = columns;
+	// Set all cells to false i.e dead
+	for ( int row = 0; row < b->rows; row++ )
+	{
+		for ( int column = 0; column < b->columns; column++)
+		{ 
+			change_cell_state( column, row, FALSE,  b );
+		}
+	}
 	// Populate the board
 	int rand_coord;
 	for ( int i = 0; i < living_cell_count; i++ )

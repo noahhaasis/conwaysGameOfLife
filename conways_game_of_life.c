@@ -1,5 +1,5 @@
 /**
-* A implementation of Conway's game of life writen in
+* A implementation of Conway's game of life written in
 * the C programming language using the SDL library.
 *
 * Keybindings:

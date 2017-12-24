@@ -44,7 +44,7 @@ int updated_cell_state( int x, int y, board* b );
 
 /**
 * Write to the cell at the location x, y on the given board
-* and return the writen value.
+* and return the written value.
 */
 int change_cell_state( int x, int y, int state, board* b );
 

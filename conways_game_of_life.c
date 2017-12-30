@@ -3,17 +3,17 @@
 * the C programming language using the SDL library.
 *
 * Keybindings:
-*	Q			 - Quit
-*	K			 - Kill all cells
+*   Q            - Quit
+*   K            - Kill all cells
 *   R            - Repopulate the board
-*   W			 - Up
-*   A			 - Left 
-*	S			 - Down
-*	D			 - Right
-*	Space		 - Pause
-*	Up-Arrow	 - Speed the simulation up
-*	Down-Arrow	 - Slow the simulation down
-*	Mouse button - Change the clicked cell's state
+*   W            - Up
+*   A            - Left 
+*   S            - Down
+*   D            - Right
+*   Space        - Pause
+*   Up-Arrow     - Speed the simulation up
+*   Down-Arrow   - Slow the simulation down
+*   Mouse button - Change the clicked cell's state
 */
 #include "board.h"
 

@@ -1,40 +1,23 @@
 #include "board.h"
 
-
 board* init_board( int rows, int columns, int living_cell_count )
 {
-	srand( time( NULL ) );
+	srand( (unsigned int)time( (time_t*)NULL ) );
 	// Allocate the board
-	board* b = malloc( sizeof( board ) + ( rows * columns ) * sizeof( uint8_t ) );
+	board* b = calloc( sizeof( board ) + ( rows * columns ) * sizeof(rows), 1 );
 	b->rows = rows;
 	b->columns = columns;
-	// Set all cells to false i.e dead
-	for ( int row = 0; row < b->rows; row++ )
-	{
-		for ( int column = 0; column < b->columns; column++)
-		{ 
-			change_cell_state( column, row, FALSE,  b );
-		}
-	}
 	// Populate the board
-	int rand_coord;
+	Uint32 rand_coord;
 	for ( int i = 0; i < living_cell_count; i++ )
 	{
-		rand_coord = rand( ) % ( rows*columns );
+		rand_coord = (rand( ) << 16 | rand()) % ( rows*columns );
 		if ( b->grid[ rand_coord ] == TRUE )
 		{
 			i--;
 			continue;
 		}
 		b->grid[ rand_coord ] = TRUE;
-	}
-	for ( int i = 0; i < rows; i++ )
-	{
-		for ( int j = 0; j < columns; j++ )
-		{
-			if ( !(cell_state(j, i, b) == TRUE))
-				change_cell_state(j, i, FALSE, b);
-		}
 	}
 	return b;
 }
@@ -98,26 +81,28 @@ int change_cell_state( int x, int y, int state, board* b )
 {
 	if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
 		return 0;
-	return b->grid[ y*b->columns + x ] = state;
+	return b->grid[ y*b->columns + x ] = (uint8_t)state;
 }
 
 
-void draw_board( board* b, SDL_Renderer* renderer )
+void draw_board( board* b, int camera_x, int camera_y, SDL_Renderer* renderer )
 {
 	Uint8 cell_color;
 	SDL_Rect rectangle;
 	rectangle.w = rectangle.h = CELL_SIZE;
 
 	// Iterate over all cells and draw them to the renderer
-	for ( int row = 0; row < b->rows; row++ )
+	int screenHeight, screenWidth;
+	SDL_GetRendererOutputSize( renderer, &screenWidth, &screenHeight );
+	for ( int row = 0, screenRows = screenHeight/CELL_SIZE; row < screenRows; row++ )
 	{
-		for ( int column = 0; column < b->columns; column++ )
+		for ( int column = 0, screenColumns = screenWidth/CELL_SIZE; column < screenColumns; column++ )
 		{
 			// Draw black squares for dead cells and white squares for living cells
-			cell_color = cell_state( column, row, b ) ? 255 : 0;
+			cell_color = cell_state( column + camera_x, row + camera_y, b ) ? 255 : 0;
 			SDL_SetRenderDrawColor( renderer, cell_color, cell_color, cell_color, 255);
-			rectangle.x = column * CELL_SIZE;
-			rectangle.y = row * CELL_SIZE;
+			rectangle.x = column*CELL_SIZE;
+			rectangle.y = row*CELL_SIZE;
 			SDL_RenderDrawRect( renderer, &rectangle );
 		}
 	}

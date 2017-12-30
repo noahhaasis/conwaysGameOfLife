@@ -12,6 +12,8 @@
 #define FALSE 0
 #define TRUE 1
 #define CELL_SIZE 10
+#define CAMERA_MOVEMENT_SPEED 4
+#define STARTING_POPULATION 4000
 
 typedef struct
 {
@@ -44,14 +46,14 @@ int updated_cell_state( int x, int y, board* b );
 
 /**
 * Write to the cell at the location x, y on the given board
-* and return the written value.
+* and return the writen value.
 */
 int change_cell_state( int x, int y, int state, board* b );
 
 /** 
 * Draws the given board to the window.
 */
-void draw_board( board* b, SDL_Renderer* renderer);
+void draw_board( board* b, int camera_x, int camera_y, SDL_Renderer* renderer);
 
 /**
 * Kills all cells in the given board.

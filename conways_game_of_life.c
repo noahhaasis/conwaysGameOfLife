@@ -1,11 +1,15 @@
 /**
-* A implementation of Conway's game of life written in
+* A implementation of Conway's game of life writen in
 * the C programming language using the SDL library.
 *
 * Keybindings:
 *	Q			 - Quit
 *	K			 - Kill all cells
 *   R            - Repopulate the board
+*   W			 - Up
+*   A			 - Left 
+*	S			 - Down
+*	D			 - Right
 *	Space		 - Pause
 *	Up-Arrow	 - Speed the simulation up
 *	Down-Arrow	 - Slow the simulation down
@@ -13,16 +17,11 @@
 */
 #include "board.h"
 
+unsigned char valid_camera_position( int x, int y, board* game_board, SDL_Window* window );
 
-int main( int argc, char* argv[ ] )
+
+int main(int argc, char** argv)
 {
-	// Check for proper input
-	if ( argc != 2 || !isdigit( argv[ 1 ][ 0 ] ))
-	{
-		printf( "Usage: ./conways_game_of_life <living cells>\n" );
-		return 1;
-	}
-
 	// Setup SDL
 	if ( SDL_Init( SDL_INIT_VIDEO ) )
 	{
@@ -58,8 +57,10 @@ int main( int argc, char* argv[ ] )
 
 	// Initialize the board
 	int window_height, window_width;
-	SDL_GetWindowSize( window, &window_width, &window_height );
-	board* cell_board = init_board( window_height / CELL_SIZE, window_width / CELL_SIZE, atoi( argv[ 1 ] ) );
+	SDL_GL_GetDrawableSize( window, &window_width, &window_height );
+	const int BOARD_HEIGHT = (window_height / CELL_SIZE)*2;
+	const int BOARD_WIDTH = (window_width / CELL_SIZE)*2;
+	board* cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
 
 	int living_cells = 0;
 	SDL_Event e;
@@ -69,11 +70,15 @@ int main( int argc, char* argv[ ] )
 	uint8_t quit = FALSE;
 	uint8_t paused = FALSE;
 
+	// Initialize the camera
+	int camera_x = ( BOARD_WIDTH - window_width/CELL_SIZE ) / 2;
+	int camera_y = ( BOARD_HEIGHT - window_height/CELL_SIZE ) / 2;
+
 	// Draw the first state of the board
-	draw_board( cell_board, renderer );
+	draw_board( cell_board, camera_x, camera_y, renderer );
 
 	// Game loop
-	while ( !quit )
+	while ( !quit ) 
 	{
 		// Handle all input events
 		while ( SDL_PollEvent( &e ) )
@@ -84,6 +89,22 @@ int main( int argc, char* argv[ ] )
 			{
 				switch ( e.key.keysym.scancode )
 				{
+				case SDL_SCANCODE_W:
+					if(valid_camera_position(camera_x, camera_y - CAMERA_MOVEMENT_SPEED, cell_board, window))
+						camera_y -= CAMERA_MOVEMENT_SPEED;
+					break;
+				case SDL_SCANCODE_A:
+					if ( valid_camera_position( camera_x - CAMERA_MOVEMENT_SPEED, camera_y, cell_board, window ) )
+						camera_x -= CAMERA_MOVEMENT_SPEED;
+					break;
+				case SDL_SCANCODE_S:
+					if ( valid_camera_position( camera_x, camera_y + CAMERA_MOVEMENT_SPEED, cell_board, window ) )
+						camera_y += CAMERA_MOVEMENT_SPEED;
+					break;
+				case SDL_SCANCODE_D:
+					if ( valid_camera_position( camera_x + CAMERA_MOVEMENT_SPEED, camera_y, cell_board, window ) )
+						camera_x += CAMERA_MOVEMENT_SPEED;
+					break;
 				case SDL_SCANCODE_SPACE:
 					paused = !paused;
 					break;
@@ -103,10 +124,8 @@ int main( int argc, char* argv[ ] )
 					break;
 				case SDL_SCANCODE_R:
 				{
-					int rows = cell_board->rows;
-					int columns = cell_board->columns;
 					free( cell_board );
-					cell_board = init_board(rows, columns, atoi(argv[1]) );
+					cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
 				} break;
 				default:
 					break;
@@ -115,8 +134,8 @@ int main( int argc, char* argv[ ] )
 
 			else if ( e.type == SDL_MOUSEBUTTONUP )
 			{
-				int board_x = e.button.x / CELL_SIZE;
-				int board_y = e.button.y / CELL_SIZE;
+				int board_x = e.button.x / CELL_SIZE + camera_x;
+				int board_y = e.button.y / CELL_SIZE + camera_y;
 				change_cell_state( board_x, board_y, !cell_state( board_x, board_y, cell_board ), cell_board );
 			}
 		}
@@ -127,15 +146,9 @@ int main( int argc, char* argv[ ] )
 			last_update_time = SDL_GetTicks( );
 		}
 
-		draw_board( cell_board, renderer );
+		draw_board( cell_board, camera_x, camera_y, renderer );
 
-		// If all cells are dead print the board and exit the game loop
-		if ( living_cells <= 0 )
-		{
-			SDL_Delay( refresh_rate );
-			draw_board( cell_board, renderer );
-			break;
-		}
+		// TODO: Fix the resfreshrate to 60 franes per second
 	}
 
 	// Clean up and exit
@@ -144,4 +157,12 @@ int main( int argc, char* argv[ ] )
 	SDL_DestroyWindow( window );
 	SDL_Quit( );
 	return EXIT_SUCCESS;
+}
+
+
+unsigned char valid_camera_position( int x, int y, board* game_board, SDL_Window* window )
+{
+	int windowHeight, windowWidth;
+	SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );
+	return ( x + windowWidth / CELL_SIZE <= game_board->columns ) && ( y + windowHeight / CELL_SIZE <= game_board->rows ) && x >= 0 && y >= 0;
 }

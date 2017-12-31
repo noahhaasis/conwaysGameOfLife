@@ -14,10 +14,22 @@
 *   Up-Arrow     - Speed the simulation up
 *   Down-Arrow   - Slow the simulation down
 *   Mouse button - Change the clicked cell's state
+*
+* TODO:
+*     - Fix the framerate to 60 fps
 */
 #include "board.h"
 
-unsigned char valid_camera_position( int x, int y, board* game_board, SDL_Window* window );
+typedef struct {
+	Uint8 wButtonDown;
+	Uint8 aButtonDown;
+	Uint8 sButtonDown;
+	Uint8 dButtonDown;
+	Uint8 upButtonDown;
+	Uint8 downButtonDown;
+} buttons;
+
+bool valid_camera_position( int x, int y, board* game_board, SDL_Window* window );
 
 
 int main(int argc, char** argv)
@@ -77,6 +89,8 @@ int main(int argc, char** argv)
 	// Draw the first state of the board
 	draw_board( cell_board, camera_x, camera_y, renderer );
 
+	buttons keys = { FALSE };
+
 	// Game loop
 	while ( !quit ) 
 	{
@@ -90,20 +104,16 @@ int main(int argc, char** argv)
 				switch ( e.key.keysym.scancode )
 				{
 				case SDL_SCANCODE_W:
-					if(valid_camera_position(camera_x, camera_y - CAMERA_MOVEMENT_SPEED, cell_board, window))
-						camera_y -= CAMERA_MOVEMENT_SPEED;
+					keys.wButtonDown = TRUE;
 					break;
 				case SDL_SCANCODE_A:
-					if ( valid_camera_position( camera_x - CAMERA_MOVEMENT_SPEED, camera_y, cell_board, window ) )
-						camera_x -= CAMERA_MOVEMENT_SPEED;
+					keys.aButtonDown = TRUE;
 					break;
 				case SDL_SCANCODE_S:
-					if ( valid_camera_position( camera_x, camera_y + CAMERA_MOVEMENT_SPEED, cell_board, window ) )
-						camera_y += CAMERA_MOVEMENT_SPEED;
+					keys.sButtonDown = TRUE;
 					break;
 				case SDL_SCANCODE_D:
-					if ( valid_camera_position( camera_x + CAMERA_MOVEMENT_SPEED, camera_y, cell_board, window ) )
-						camera_x += CAMERA_MOVEMENT_SPEED;
+					keys.dButtonDown = TRUE;
 					break;
 				case SDL_SCANCODE_SPACE:
 					paused = !paused;
@@ -112,12 +122,10 @@ int main(int argc, char** argv)
 					quit = TRUE;
 					break;
 				case SDL_SCANCODE_UP:
-					if ( refresh_rate > 100 )
-						refresh_rate -= 100;
+					keys.upButtonDown = TRUE;
 					break;
 				case SDL_SCANCODE_DOWN:
-					if ( refresh_rate < 10000 )
-						refresh_rate += 100;
+					keys.downButtonDown = TRUE;
 					break;
 				case SDL_SCANCODE_K:
 					kill_all_cells( cell_board );
@@ -130,8 +138,32 @@ int main(int argc, char** argv)
 				default:
 					break;
 				}
-			}
 
+			}
+			else if ( e.type == SDL_KEYUP )
+			{
+				switch ( e.key.keysym.scancode )
+				{
+				case SDL_SCANCODE_W:
+					keys.wButtonDown = FALSE;
+					break;
+				case SDL_SCANCODE_A:
+					keys.aButtonDown = FALSE;
+					break;
+				case SDL_SCANCODE_S:
+					keys.sButtonDown = FALSE;
+					break;
+				case SDL_SCANCODE_D:
+					keys.dButtonDown = FALSE;
+					break;
+				case SDL_SCANCODE_UP:
+					keys.upButtonDown = FALSE;
+					break;
+				case SDL_SCANCODE_DOWN:
+					keys.downButtonDown = FALSE;
+					break;
+				}
+			}
 			else if ( e.type == SDL_MOUSEBUTTONUP )
 			{
 				int board_x = e.button.x / CELL_SIZE + camera_x;
@@ -140,6 +172,40 @@ int main(int argc, char** argv)
 			}
 		}
 
+		// React to the W, A, S, D, up and down keys
+		if ( keys.aButtonDown )
+		{
+			if ( valid_camera_position( camera_x - CAMERA_MOVEMENT_SPEED, camera_y, cell_board, window ) )
+				camera_x -= CAMERA_MOVEMENT_SPEED;
+		}
+		if ( keys.wButtonDown )
+		{
+			if ( valid_camera_position( camera_x, camera_y - CAMERA_MOVEMENT_SPEED, cell_board, window ) )
+				camera_y -= CAMERA_MOVEMENT_SPEED;
+		}
+		if ( keys.sButtonDown )
+		{
+			if ( valid_camera_position( camera_x, camera_y + CAMERA_MOVEMENT_SPEED, cell_board, window ) )
+				camera_y += CAMERA_MOVEMENT_SPEED;
+		}
+		if ( keys.dButtonDown )
+		{
+			if ( valid_camera_position( camera_x + CAMERA_MOVEMENT_SPEED, camera_y, cell_board, window ) )
+				camera_x += CAMERA_MOVEMENT_SPEED;
+		}
+		if ( keys.upButtonDown )
+		{
+			if ( refresh_rate > 100 )
+				refresh_rate -= 100;
+
+		}
+		if ( keys.downButtonDown )
+		{
+			if ( refresh_rate < 10000 )
+				refresh_rate += 100;
+		}
+
+
 		if ( !(( SDL_GetTicks( ) - last_update_time ) < refresh_rate) && ! paused)
 		{
 			living_cells = update_board( cell_board );
@@ -147,8 +213,6 @@ int main(int argc, char** argv)
 		}
 
 		draw_board( cell_board, camera_x, camera_y, renderer );
-
-		// TODO: Fix the resfreshrate to 60 franes per second
 	}
 
 	// Clean up and exit
@@ -160,7 +224,7 @@ int main(int argc, char** argv)
 }
 
 
-unsigned char valid_camera_position( int x, int y, board* game_board, SDL_Window* window )
+bool valid_camera_position( int x, int y, board* game_board, SDL_Window* window )
 {
 	int windowHeight, windowWidth;
 	SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );

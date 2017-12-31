@@ -11,6 +11,7 @@ board* init_board( int rows, int columns, int living_cell_count )
 	Uint32 rand_coord;
 	for ( int i = 0; i < living_cell_count; i++ )
 	{
+		// Generate a 32 bit random value
 		rand_coord = (rand( ) << 16 | rand()) % ( rows*columns );
 		if ( b->grid[ rand_coord ] == TRUE )
 		{
@@ -49,7 +50,7 @@ int update_board( board* b )
 }
 
 
-int cell_state( int x, int y, board* b )
+bool cell_state( int x, int y, board* b )
 {
 	if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
 		return FALSE;
@@ -57,7 +58,7 @@ int cell_state( int x, int y, board* b )
 }
 
 
-int updated_cell_state( int x, int y, board* b )
+bool updated_cell_state( int x, int y, board* b )
 {
 	// Count the living neighbors
 	int living_neighbor_cells = 0;
@@ -77,7 +78,7 @@ int updated_cell_state( int x, int y, board* b )
 }
 
 
-int change_cell_state( int x, int y, int state, board* b )
+bool change_cell_state( int x, int y, bool state, board* b )
 {
 	if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
 		return 0;

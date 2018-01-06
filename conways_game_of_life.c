@@ -17,6 +17,7 @@
 *
 * TODO:
 *     - Fix the framerate to 60 fps
+*     - Zoom with the scroll wheel
 */
 #include "board.h"
 
@@ -28,6 +29,13 @@ typedef struct {
 	Uint8 upButtonDown;
 	Uint8 downButtonDown;
 } buttons;
+
+typedef struct
+{
+    Uint8 leftButtonPressed;
+    Uint16 last_cursor_x;
+    Uint16 last_cursor_y;
+} mouseState;
 
 bool valid_camera_position( int x, int y, board* game_board, SDL_Window* window );
 
@@ -90,6 +98,7 @@ int main(int argc, char** argv)
 	draw_board( cell_board, camera_x, camera_y, renderer );
 
 	buttons keys = { FALSE };
+    mouseState mouse = { FALSE, (Uint16)-1, (Uint16)-1 };
 
 	// Game loop
 	while ( !quit ) 
@@ -166,10 +175,13 @@ int main(int argc, char** argv)
 			}
 			else if ( e.type == SDL_MOUSEBUTTONUP )
 			{
-				int board_x = e.button.x / CELL_SIZE + camera_x;
-				int board_y = e.button.y / CELL_SIZE + camera_y;
-				change_cell_state( board_x, board_y, !cell_state( board_x, board_y, cell_board ), cell_board );
+                mouse.leftButtonPressed = FALSE;
+                mouse.last_cursor_x = mouse.last_cursor_y = (Uint16)-1;
 			}
+            else if ( e.type == SDL_MOUSEBUTTONDOWN )
+            {
+                mouse.leftButtonPressed = TRUE;
+            }
 		}
 
 		// React to the W, A, S, D, up and down keys
@@ -204,6 +216,20 @@ int main(int argc, char** argv)
 			if ( refresh_rate < 10000 )
 				refresh_rate += 100;
 		}
+        if ( mouse.leftButtonPressed )
+        {
+            Uint16 cursor_x, cursor_y;
+            SDL_GetGlobalMouseState( (int *)&cursor_x, (int *)&cursor_y );
+            // change the cell state if the mouse position changed
+            if ( !( cursor_x / CELL_SIZE == mouse.last_cursor_x / CELL_SIZE && cursor_y / CELL_SIZE == mouse.last_cursor_y / CELL_SIZE ) )
+            {
+                Uint16 row = camera_y + cursor_y / CELL_SIZE;
+                Uint16 column = camera_x + cursor_x / CELL_SIZE;
+                change_cell_state( column, row, !cell_state(column, row, cell_board), cell_board );
+                mouse.last_cursor_x = cursor_x;
+                mouse.last_cursor_y = cursor_y;
+            }
+        }
 
 
 		if ( !(( SDL_GetTicks( ) - last_update_time ) < refresh_rate) && ! paused)

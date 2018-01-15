@@ -2,18 +2,23 @@
 #define BOARD_H
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <time.h>
 #include <string.h>
+#include <math.h>
+#include <assert.h>
 #include "SDL.h"
+#if DEBUG
+#define _CRTDBG_MAP_ALLOC
+#endif
+#include <stdlib.h>  
+#if DEBUG
+#include <crtdbg.h>  
+#endif
 
 #define FALSE 0
 #define TRUE 1
-#define CELL_SIZE 10
-#define CAMERA_MOVEMENT_SPEED 4
-#define STARTING_POPULATION 6000
 
 typedef Uint8 bool;
 
@@ -24,25 +29,32 @@ typedef struct
 	bool grid[ ];
 } board;
 
+typedef struct
+{
+    int camera_x;
+    int camera_y;
+    int cell_size;
+} view;
+
 
 /**
-* Initializes a board with a given size and a given number of
+* Initialize a board with a given size and a given number of
 * living cells.
 */
 board* init_board( int rows, int columns, int living_cell_count );
 
 /**
-* Updates the board's state and return the number of living cells.
+* Update the board's state and return the number of living cells.
 */
 int update_board( board* b );
 
 /**
-* Returns the state of the cell at location x, y in the given board
+* Return the state of the cell at location x, y in the given board
 */
 bool cell_state( int x, int y, board* b );
 
 /**
-* Returns the updated state of the cell at location x, y in the given board
+* Return the updated state of the cell at location x, y in the given board
 */
 bool updated_cell_state( int x, int y, board* b );
 
@@ -53,13 +65,20 @@ bool updated_cell_state( int x, int y, board* b );
 bool change_cell_state( int x, int y, bool state, board* b );
 
 /** 
-* Draws the given board to the window.
+* Draw the given board to the window.
 */
-void draw_board( board* b, int camera_x, int camera_y, SDL_Renderer* renderer);
+void draw_board( board* b, view player_view, SDL_Renderer* renderer );
 
 /**
-* Kills all cells in the given board.
+* Kill all cells in the given board.
 */
 void kill_all_cells( board* b );
+
+
+/**
+* Return for the board needed size in bytes.
+*/
+int board_byte_size( int row, int colunm );
+
 
 #endif

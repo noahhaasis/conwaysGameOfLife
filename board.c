@@ -1,10 +1,25 @@
 #include "board.h"
 
+inline int power_of_two( int n )
+{
+    if ( n >= 0 && n <= 7 )
+    {
+        int powers[ 32 ] = {
+            1, 2, 4, 8, 16, 32, 64, 128,
+            256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
+            65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608,
+            16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, 2147483648
+        };
+        return powers[ n ];
+    }
+    else
+        return ( int ) pow( ( double ) 2, n );
+}
+
 board* init_board( int rows, int columns, int living_cell_count )
 {
 	srand( (unsigned int)time( (time_t*)NULL ) );
-	// Allocate the board
-	board* b = calloc( sizeof( board ) + ( rows * columns ) * sizeof(rows), 1 );
+	board* b = calloc( 1, board_byte_size( rows, columns ) );
 	b->rows = rows;
 	b->columns = columns;
 	// Populate the board
@@ -13,12 +28,12 @@ board* init_board( int rows, int columns, int living_cell_count )
 	{
 		// Generate a 32 bit random value
 		rand_coord = (rand( ) << 16 | rand()) % ( rows*columns );
-		if ( b->grid[ rand_coord ] == TRUE )
+		if ( (b->grid[rand_coord / 8]  & power_of_two(rand_coord % 8)) == TRUE )
 		{
 			i--;
 			continue;
 		}
-		b->grid[ rand_coord ] = TRUE;
+		b->grid[ rand_coord / 8 ] |= power_of_two(rand_coord % 8);
 	}
 	return b;
 }
@@ -27,8 +42,7 @@ board* init_board( int rows, int columns, int living_cell_count )
 int update_board( board* b )
 {
 	// Allocate a temporary board
-	int board_byte_size = sizeof( board ) + ( b->rows*b->columns ) * sizeof( uint8_t );
-	board* temp_board = malloc( board_byte_size );
+	board* temp_board = malloc( board_byte_size( b->rows, b->columns) );
 	temp_board->rows = b->rows;
 	temp_board->columns = b->columns;
 
@@ -44,7 +58,7 @@ int update_board( board* b )
 	}
 
 	// Copy the temporary board into the given board
-	memcpy( b, temp_board, board_byte_size );
+	memcpy( b, temp_board, board_byte_size( b->rows, b->columns) );
 	free( temp_board );
 	return living_cells_count;
 }
@@ -54,7 +68,7 @@ bool cell_state( int x, int y, board* b )
 {
 	if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
 		return FALSE;
-	return b->grid[ y*b->columns + x ];
+	return (b->grid[ ( ( y*b->columns + x ) / 8 ) ] & power_of_two( ( y*b->columns + x ) % 8 )) != 0;
 }
 
 
@@ -72,6 +86,7 @@ bool updated_cell_state( int x, int y, board* b )
 	if ( cell_state( x + 1, y + 1, b ) ) living_neighbor_cells++;
 
 	// Return the new state of the cell at position board[x][y]
+    // printf( "Row: %d of %d; Column: %d of %d\n", x, b->rows, y, b->columns );
 	if ( ( cell_state( x, y, b ) && ( living_neighbor_cells == 2 ) ) || living_neighbor_cells == 3 )
 		return TRUE;
 	return FALSE;
@@ -82,28 +97,31 @@ bool change_cell_state( int x, int y, bool state, board* b )
 {
 	if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
 		return 0;
-	return b->grid[ y*b->columns + x ] = (uint8_t)state;
+    if ( state )
+	    return b->grid[ (y*b->columns + x)/8 ] |= power_of_two( ( y*b->columns + x ) % 8 );
+    else 
+        return b->grid[ (y*b->columns + x)/8 ] &= ~power_of_two( ( y*b->columns + x ) % 8 );
 }
 
 
-void draw_board( board* b, int camera_x, int camera_y, SDL_Renderer* renderer )
+void draw_board( board* b, view player_view, SDL_Renderer* renderer )
 {
 	Uint8 cell_color;
 	SDL_Rect rectangle;
-	rectangle.w = rectangle.h = CELL_SIZE;
+	rectangle.w = rectangle.h = player_view.cell_size;
 
 	// Iterate over all cells and draw them to the renderer
 	int screenHeight, screenWidth;
 	SDL_GetRendererOutputSize( renderer, &screenWidth, &screenHeight );
-	for ( int row = 0, screenRows = screenHeight/CELL_SIZE; row < screenRows; row++ )
+	for ( int row = 0, screenRows = screenHeight/ player_view.cell_size; row < screenRows; row++ )
 	{
-		for ( int column = 0, screenColumns = screenWidth/CELL_SIZE; column < screenColumns; column++ )
+		for ( int column = 0, screenColumns = screenWidth/ player_view.cell_size; column < screenColumns; column++ )
 		{
 			// Draw black squares for dead cells and white squares for living cells
-			cell_color = cell_state( column + camera_x, row + camera_y, b ) ? 255 : 0;
+			cell_color = cell_state( column + player_view.camera_x, row + player_view.camera_y, b ) ? 255 : 0;
 			SDL_SetRenderDrawColor( renderer, cell_color, cell_color, cell_color, 255);
-			rectangle.x = column*CELL_SIZE;
-			rectangle.y = row*CELL_SIZE;
+			rectangle.x = column*player_view.cell_size;
+			rectangle.y = row* player_view.cell_size;
 			SDL_RenderDrawRect( renderer, &rectangle );
 		}
 	}
@@ -113,9 +131,13 @@ void draw_board( board* b, int camera_x, int camera_y, SDL_Renderer* renderer )
 
 void kill_all_cells( board * b )
 {
-	for ( int row = 0; row < b->rows; row++ )
-	{
-		for ( int column = 0; column < b->columns; column++ )
-			change_cell_state( column, row, FALSE,  b );
-	}
+    memset( ( char* ) b + sizeof( board ), 0, board_byte_size( b->rows, b->columns ) - sizeof( board ) );
+}
+
+inline int board_byte_size( int rows, int columns )
+{
+    int size = sizeof( board ) + ( rows * columns ) / 8;
+    // Add 1 if the number of cells is not divisible by 8 (8 bits = 1 bytes)
+    size += ( rows * columns % 8 ) ? 1 : 0;
+    return size;
 }

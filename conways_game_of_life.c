@@ -16,8 +16,10 @@
 *   Mouse button - Change the clicked cell's state
 *
 * TODO:
-*     - Fix the framerate to 60 fps
-*     - Zoom with the scroll wheel
+*     - Limit the framerate to 60 fps.
+*     - Refactor the CELL_SIZE and camera in a view struct.
+*     - Zoom with the scroll wheel.
+*     - Store the board as an array of 32 or 64 bit integers depending on the system's architecture
 */
 #include "board.h"
 
@@ -33,15 +35,24 @@ typedef struct {
 typedef struct
 {
     Uint8 leftButtonPressed;
-    Uint16 last_cursor_x;
-    Uint16 last_cursor_y;
+    Uint32 last_cursor_x;
+    Uint32 last_cursor_y;
 } mouseState;
 
-bool valid_camera_position( int x, int y, board* game_board, SDL_Window* window );
+
+/**
+* Moves the camera in the given direction by a given amount.
+* If it's not possbile to move by x and y it moves as far in the direction as possible.
+*/
+void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window );
 
 
 int main(int argc, char** argv)
 {
+    const int SCREEN_FPS = 60;
+    const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+    const int CAMERA_MOVEMENT_SPEED = 4;
+    const int STARTING_POPULATION = 6000;
 	// Setup SDL
 	if ( SDL_Init( SDL_INIT_VIDEO ) )
 	{
@@ -75,12 +86,16 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	// Initialize the board
-	int window_height, window_width;
+	// Initialize the board and the players view on it
+    view player_view;
+    int window_height, window_width;
+    player_view.cell_size = 10;
 	SDL_GL_GetDrawableSize( window, &window_width, &window_height );
-	const int BOARD_HEIGHT = (window_height / CELL_SIZE)*2;
-	const int BOARD_WIDTH = (window_width / CELL_SIZE)*2;
+	const int BOARD_HEIGHT = (window_height / player_view.cell_size )*2;
+	const int BOARD_WIDTH = (window_width / player_view.cell_size )*2;
 	board* cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
+    player_view.camera_x = ( BOARD_WIDTH - window_width / player_view.cell_size ) / 2;
+    player_view.camera_y = ( BOARD_HEIGHT - window_height / player_view.cell_size ) / 2;
 
 	int living_cells = 0;
 	SDL_Event e;
@@ -90,12 +105,8 @@ int main(int argc, char** argv)
 	uint8_t quit = FALSE;
 	uint8_t paused = FALSE;
 
-	// Initialize the camera
-	int camera_x = ( BOARD_WIDTH - window_width/CELL_SIZE ) / 2;
-	int camera_y = ( BOARD_HEIGHT - window_height/CELL_SIZE ) / 2;
-
 	// Draw the first state of the board
-	draw_board( cell_board, camera_x, camera_y, renderer );
+	draw_board( cell_board, player_view, renderer );
 
 	buttons keys = { FALSE };
     mouseState mouse = { FALSE, (Uint16)-1, (Uint16)-1 };
@@ -145,7 +156,8 @@ int main(int argc, char** argv)
 					cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
 				} break;
 				default:
-					break;
+                {
+                } break;
 				}
 
 			}
@@ -182,28 +194,32 @@ int main(int argc, char** argv)
             {
                 mouse.leftButtonPressed = TRUE;
             }
+            else if ( e.wheel.y == 1)
+            {
+                // Zoom out
+            }
+            else if ( e.wheel.y == -1)
+            {
+                // Zoom in
+            }
 		}
 
 		// React to the W, A, S, D, up and down keys
 		if ( keys.aButtonDown )
 		{
-			if ( valid_camera_position( camera_x - CAMERA_MOVEMENT_SPEED, camera_y, cell_board, window ) )
-				camera_x -= CAMERA_MOVEMENT_SPEED;
+            move_camera_by( -CAMERA_MOVEMENT_SPEED, 0, &player_view, cell_board, window );
 		}
 		if ( keys.wButtonDown )
 		{
-			if ( valid_camera_position( camera_x, camera_y - CAMERA_MOVEMENT_SPEED, cell_board, window ) )
-				camera_y -= CAMERA_MOVEMENT_SPEED;
+            move_camera_by( 0, -CAMERA_MOVEMENT_SPEED, &player_view, cell_board, window );
 		}
 		if ( keys.sButtonDown )
 		{
-			if ( valid_camera_position( camera_x, camera_y + CAMERA_MOVEMENT_SPEED, cell_board, window ) )
-				camera_y += CAMERA_MOVEMENT_SPEED;
+            move_camera_by( 0, CAMERA_MOVEMENT_SPEED, &player_view, cell_board, window );
 		}
 		if ( keys.dButtonDown )
 		{
-			if ( valid_camera_position( camera_x + CAMERA_MOVEMENT_SPEED, camera_y, cell_board, window ) )
-				camera_x += CAMERA_MOVEMENT_SPEED;
+            move_camera_by( CAMERA_MOVEMENT_SPEED, 0, &player_view, cell_board, window );
 		}
 		if ( keys.upButtonDown )
 		{
@@ -218,14 +234,14 @@ int main(int argc, char** argv)
 		}
         if ( mouse.leftButtonPressed )
         {
-            Uint16 cursor_x, cursor_y;
-            SDL_GetGlobalMouseState( (int *)&cursor_x, (int *)&cursor_y );
+            int cursor_x, cursor_y;
+            SDL_GetGlobalMouseState( &cursor_x, &cursor_y );
             // change the cell state if the mouse position changed
-            if ( !( cursor_x / CELL_SIZE == mouse.last_cursor_x / CELL_SIZE && cursor_y / CELL_SIZE == mouse.last_cursor_y / CELL_SIZE ) )
+            if ( !( cursor_x / player_view.cell_size == mouse.last_cursor_x / player_view.cell_size && cursor_y / player_view.cell_size == mouse.last_cursor_y / player_view.cell_size ) )
             {
-                Uint16 row = camera_y + cursor_y / CELL_SIZE;
-                Uint16 column = camera_x + cursor_x / CELL_SIZE;
-                change_cell_state( column, row, !cell_state(column, row, cell_board), cell_board );
+                Uint32 row = (Uint32) player_view.camera_y + cursor_y / player_view.cell_size;
+                Uint32 column = (Uint32) player_view.camera_x + cursor_x / player_view.cell_size;
+                change_cell_state( column, row, !cell_state( column, row, cell_board ), cell_board );
                 mouse.last_cursor_x = cursor_x;
                 mouse.last_cursor_y = cursor_y;
             }
@@ -238,21 +254,30 @@ int main(int argc, char** argv)
 			last_update_time = SDL_GetTicks( );
 		}
 
-		draw_board( cell_board, camera_x, camera_y, renderer );
-	}
+		draw_board( cell_board, player_view, renderer );
 
+	}
 	// Clean up and exit
 	free( cell_board );
 	SDL_DestroyRenderer( renderer );
 	SDL_DestroyWindow( window );
+    SDL_QuitSubSystem( flags );
 	SDL_Quit( );
+#if DEBUG
+    _CrtDumpMemoryLeaks( );
+#endif
 	return EXIT_SUCCESS;
 }
 
-
-bool valid_camera_position( int x, int y, board* game_board, SDL_Window* window )
+void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window )
 {
-	int windowHeight, windowWidth;
-	SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );
-	return ( x + windowWidth / CELL_SIZE <= game_board->columns ) && ( y + windowHeight / CELL_SIZE <= game_board->rows ) && x >= 0 && y >= 0;
+    int windowHeight, windowWidth;
+    SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );
+    player_view->camera_x += x;
+    player_view->camera_x = player_view->camera_x < 0 ? 0 : player_view->camera_x;
+    player_view->camera_x = !( player_view->camera_x + windowWidth / player_view->cell_size <= game_board->columns) ? game_board->columns - windowWidth / player_view->cell_size : player_view->camera_x;
+
+    player_view->camera_y += y;
+    player_view->camera_y = player_view->camera_y < 0 ? 0 : player_view->camera_y;
+    player_view->camera_y = !( player_view->camera_y + windowHeight / player_view->cell_size <= game_board->rows) ? game_board->rows - windowHeight / player_view->cell_size : player_view->camera_y;
 }

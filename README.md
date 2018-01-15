@@ -1,7 +1,6 @@
 # conwaysGameOfLife
 A implementaion of Conway's game of life written in the C language using the SDL library.
 
-
 Keymappings:
     Q            - Quit
     K            - Kill all cells

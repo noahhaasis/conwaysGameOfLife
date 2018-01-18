@@ -34,6 +34,10 @@ typedef struct
     int camera_x;
     int camera_y;
     int cell_size;
+    int height_in_cells;
+    int width_in_cells;
+    int window_height;
+    int window_width;
 } view;
 
 
@@ -74,11 +78,17 @@ void draw_board( board* b, view player_view, SDL_Renderer* renderer );
 */
 void kill_all_cells( board* b );
 
+/**
+* Resizes the view. Adds the zoom factor the cell_size.
+*/
+void resize_board_view( int zoom, view* player_view, board* world );
+
 
 /**
-* Return for the board needed size in bytes.
+* Moves the camera in the given direction by a given amount.
+* If it's not possbile to move by x and y it moves as far in the direction as possible.
+* And if the camera position is out of bounds it doesn't move the camera at all.
 */
-int board_byte_size( int row, int colunm );
-
+void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window );
 
 #endif

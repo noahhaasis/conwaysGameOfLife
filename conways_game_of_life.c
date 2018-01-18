@@ -16,10 +16,10 @@
 *   Mouse button - Change the clicked cell's state
 *
 * TODO:
-*     - Limit the framerate to 60 fps.
-*     - Refactor the CELL_SIZE and camera in a view struct.
-*     - Zoom with the scroll wheel.
 *     - Store the board as an array of 32 or 64 bit integers depending on the system's architecture
+*     - Set the movement speed relative to the pixels instead of the cells
+*     - Measure and improve the performance
+* 
 */
 #include "board.h"
 
@@ -40,19 +40,11 @@ typedef struct
 } mouseState;
 
 
-/**
-* Moves the camera in the given direction by a given amount.
-* If it's not possbile to move by x and y it moves as far in the direction as possible.
-*/
-void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window );
-
 
 int main(int argc, char** argv)
 {
-    const int SCREEN_FPS = 60;
-    const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
     const int CAMERA_MOVEMENT_SPEED = 4;
-    const int STARTING_POPULATION = 6000;
+    const int STARTING_POPULATION = 20000;
 	// Setup SDL
 	if ( SDL_Init( SDL_INIT_VIDEO ) )
 	{
@@ -77,7 +69,8 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	// Create a renderer
-	SDL_Renderer* renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
+    // NOTE: Handle multiple generations per frame if SDL_RENDERER_PRESENTVSYNC is set
+	SDL_Renderer* renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC );
 	if ( !renderer )
 	{
 		fprintf( stderr, "error creating renderer: %s\n", SDL_GetError( ) );
@@ -89,13 +82,18 @@ int main(int argc, char** argv)
 	// Initialize the board and the players view on it
     view player_view;
     int window_height, window_width;
+    SDL_GL_GetDrawableSize( window, &window_width, &window_height );
     player_view.cell_size = 10;
-	SDL_GL_GetDrawableSize( window, &window_width, &window_height );
-	const int BOARD_HEIGHT = (window_height / player_view.cell_size )*2;
-	const int BOARD_WIDTH = (window_width / player_view.cell_size )*2;
+    player_view.height_in_cells = window_height / player_view.cell_size;
+    player_view.width_in_cells = window_width / player_view.cell_size;
+    player_view.window_height = window_height;
+    player_view.window_width = window_width;
+    const int BOARD_HEIGHT = player_view.window_height / 4;
+	const int BOARD_WIDTH = player_view.window_width / 4;
 	board* cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
-    player_view.camera_x = ( BOARD_WIDTH - window_width / player_view.cell_size ) / 2;
-    player_view.camera_y = ( BOARD_HEIGHT - window_height / player_view.cell_size ) / 2;
+    // The starting position of the camera
+    player_view.camera_x = ( BOARD_WIDTH - player_view.width_in_cells ) / 2;
+    player_view.camera_y = ( BOARD_HEIGHT - player_view.height_in_cells ) / 2;
 
 	int living_cells = 0;
 	SDL_Event e;
@@ -197,10 +195,12 @@ int main(int argc, char** argv)
             else if ( e.wheel.y == 1)
             {
                 // Zoom out
+                resize_board_view( -1, &player_view, cell_board );
             }
             else if ( e.wheel.y == -1)
             {
                 // Zoom in
+                resize_board_view( 1, &player_view, cell_board );
             }
 		}
 
@@ -247,16 +247,19 @@ int main(int argc, char** argv)
             }
         }
 
-
 		if ( !(( SDL_GetTicks( ) - last_update_time ) < refresh_rate) && ! paused)
 		{
 			living_cells = update_board( cell_board );
 			last_update_time = SDL_GetTicks( );
 		}
 
+        // Clear the entire screen and redraw it
+        SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+        if ( SDL_RenderClear( renderer ) )
+            printf( "%s\n", SDL_GetError( ) );
 		draw_board( cell_board, player_view, renderer );
-
 	}
+
 	// Clean up and exit
 	free( cell_board );
 	SDL_DestroyRenderer( renderer );
@@ -269,15 +272,3 @@ int main(int argc, char** argv)
 	return EXIT_SUCCESS;
 }
 
-void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window )
-{
-    int windowHeight, windowWidth;
-    SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );
-    player_view->camera_x += x;
-    player_view->camera_x = player_view->camera_x < 0 ? 0 : player_view->camera_x;
-    player_view->camera_x = !( player_view->camera_x + windowWidth / player_view->cell_size <= game_board->columns) ? game_board->columns - windowWidth / player_view->cell_size : player_view->camera_x;
-
-    player_view->camera_y += y;
-    player_view->camera_y = player_view->camera_y < 0 ? 0 : player_view->camera_y;
-    player_view->camera_y = !( player_view->camera_y + windowHeight / player_view->cell_size <= game_board->rows) ? game_board->rows - windowHeight / player_view->cell_size : player_view->camera_y;
-}

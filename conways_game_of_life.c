@@ -14,6 +14,7 @@
 *   Up-Arrow     - Speed the simulation up
 *   Down-Arrow   - Slow the simulation down
 *   Mouse button - Change the clicked cell's state
+*   Scroll wheel - Zoom
 *
 * TODO:
 *     - Store the board as an array of 32 or 64 bit integers depending on the system's architecture
@@ -43,7 +44,6 @@ typedef struct
 
 int main(int argc, char** argv)
 {
-    const int CAMERA_MOVEMENT_SPEED = 4;
     const int STARTING_POPULATION = 20000;
 	// Setup SDL
 	if ( SDL_Init( SDL_INIT_VIDEO ) )
@@ -88,6 +88,8 @@ int main(int argc, char** argv)
     player_view.width_in_cells = window_width / player_view.cell_size;
     player_view.window_height = window_height;
     player_view.window_width = window_width;
+    player_view.movement_speed_in_cells = 3;
+    player_view.min_movement_speed_in_pixels = player_view.movement_speed_in_cells * player_view.cell_size;
     const int BOARD_HEIGHT = player_view.window_height / 4;
 	const int BOARD_WIDTH = player_view.window_width / 4;
 	board* cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
@@ -192,34 +194,29 @@ int main(int argc, char** argv)
             {
                 mouse.leftButtonPressed = TRUE;
             }
-            else if ( e.wheel.y == 1)
+            else if ( e.wheel.y == 1 || e.wheel.y == -1)
             {
-                // Zoom out
-                resize_board_view( -1, &player_view, cell_board );
-            }
-            else if ( e.wheel.y == -1)
-            {
-                // Zoom in
-                resize_board_view( 1, &player_view, cell_board );
+                // Zoom
+                resize_board_view( -e.wheel.y, &player_view, cell_board );
             }
 		}
 
 		// React to the W, A, S, D, up and down keys
 		if ( keys.aButtonDown )
 		{
-            move_camera_by( -CAMERA_MOVEMENT_SPEED, 0, &player_view, cell_board, window );
+            move_camera_by( -player_view.movement_speed_in_cells, 0, &player_view, cell_board, window );
 		}
 		if ( keys.wButtonDown )
 		{
-            move_camera_by( 0, -CAMERA_MOVEMENT_SPEED, &player_view, cell_board, window );
+            move_camera_by( 0, -player_view.movement_speed_in_cells, &player_view, cell_board, window );
 		}
 		if ( keys.sButtonDown )
 		{
-            move_camera_by( 0, CAMERA_MOVEMENT_SPEED, &player_view, cell_board, window );
+            move_camera_by( 0, player_view.movement_speed_in_cells, &player_view, cell_board, window );
 		}
 		if ( keys.dButtonDown )
 		{
-            move_camera_by( CAMERA_MOVEMENT_SPEED, 0, &player_view, cell_board, window );
+            move_camera_by( player_view.movement_speed_in_cells, 0, &player_view, cell_board, window );
 		}
 		if ( keys.upButtonDown )
 		{

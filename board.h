@@ -38,6 +38,9 @@ typedef struct
     int width_in_cells;
     int window_height;
     int window_width;
+    // The movement speed in cell depends on the movement speed in pixels but is never less then 1
+    int movement_speed_in_cells;
+    int min_movement_speed_in_pixels;
 } view;
 
 

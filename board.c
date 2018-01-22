@@ -83,18 +83,18 @@ bool cell_state( int x, int y, board* b )
 bool updated_cell_state( int x, int y, board* b )
 {
 	// Count the living neighbors
-	int living_neighbor_cells = 0;
-	if ( cell_state( x - 1, y - 1, b ) ) living_neighbor_cells++;
-	if ( cell_state( x, y - 1, b ) ) living_neighbor_cells++;
-	if ( cell_state( x + 1, y - 1, b ) ) living_neighbor_cells++;
-	if ( cell_state( x - 1, y, b ) ) living_neighbor_cells++;
-	if ( cell_state( x + 1, y, b ) ) living_neighbor_cells++;
-	if ( cell_state( x - 1, y + 1, b ) ) living_neighbor_cells++;
-	if ( cell_state( x, y + 1, b ) ) living_neighbor_cells++;
-	if ( cell_state( x + 1, y + 1, b ) ) living_neighbor_cells++;
+	int living_neighbor_cells = 
+	    cell_state( x - 1, y - 1, b ) +
+	    cell_state( x, y - 1, b ) +
+	    cell_state( x + 1, y - 1, b ) +
+	    cell_state( x - 1, y, b ) +
+	    cell_state( x + 1, y, b ) +
+	    cell_state( x - 1, y + 1, b ) +
+	    cell_state( x, y + 1, b ) +
+	    cell_state( x + 1, y + 1, b ) ;
 
 	// Return the new state of the cell at position board[x][y]
-	if ( ( cell_state( x, y, b ) && ( living_neighbor_cells == 2 ) ) || living_neighbor_cells == 3 )
+	if ( living_neighbor_cells == 3 || ( cell_state( x, y, b ) && ( living_neighbor_cells == 2 ) ) )
 		return TRUE;
 	return FALSE;
 }
@@ -113,7 +113,8 @@ bool change_cell_state( int x, int y, bool state, board* b )
 
 void draw_board( board* b, view player_view, SDL_Renderer* renderer )
 {
-	Uint8 cell_color;
+	Uint8 red_channel, green_channel, blue_channel;
+    bool current_cell_alive;
 	SDL_Rect rectangle;
 	rectangle.w = rectangle.h = player_view.cell_size;
 
@@ -125,8 +126,12 @@ void draw_board( board* b, view player_view, SDL_Renderer* renderer )
 		for ( int column = 0; column < player_view.width_in_cells; column++ )
 		{
 			// Draw black squares for dead cells and white squares for living cells
-			cell_color = cell_state( column + player_view.camera_x, row + player_view.camera_y, b ) ? 255 : 30;
-			SDL_SetRenderDrawColor( renderer, cell_color, cell_color, cell_color, 255);
+            current_cell_alive = cell_state( column + player_view.camera_x, row + player_view.camera_y, b );
+            red_channel = current_cell_alive ? 255 : 20;
+            green_channel = current_cell_alive ? 255 : 20;
+            blue_channel = current_cell_alive ? 255 : 20;
+
+			SDL_SetRenderDrawColor( renderer, red_channel, green_channel, blue_channel, 255);
 			rectangle.x = column*player_view.cell_size;
 			rectangle.y = row*player_view.cell_size;
 			SDL_RenderDrawRect( renderer, &rectangle );
@@ -162,6 +167,10 @@ void resize_board_view( int zoom, view* player_view, board* world )
 
     player_view->camera_x = center_x - ( player_view->width_in_cells / 2 );
     player_view->camera_y = center_y - ( player_view->height_in_cells / 2 );
+
+    // Change the movement speed in cells (Don't allow it to be zero)
+    player_view->movement_speed_in_cells = player_view->min_movement_speed_in_pixels / player_view->cell_size;
+    player_view->movement_speed_in_cells = player_view->movement_speed_in_cells ? player_view->movement_speed_in_cells : 1;
 
     // Change the camera position in case it is out of bounds and the view is not bigger then the board
     if ( !( player_view->height_in_cells > world->rows || player_view->width_in_cells > world->columns ) )

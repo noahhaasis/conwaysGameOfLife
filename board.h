@@ -24,9 +24,9 @@ typedef Uint8 bool;
 
 typedef struct
 {
-	int rows;
-	int columns;
-	bool grid[ ];
+    int rows;
+    int columns;
+    bool grid[ ];
 } board;
 
 typedef struct
@@ -93,5 +93,12 @@ void resize_board_view( int zoom, view* player_view, board* world );
 * And if the camera position is out of bounds it doesn't move the camera at all.
 */
 void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window );
+
+
+/**
+ * Reads the width and the height off a board from the given rse file
+ * and writes them into w and h.
+ */
+void get_board_dimensions_from_rse_file( int *w, int *h, const char** filename );
 
 #endif

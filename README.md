@@ -6,7 +6,7 @@ A implementaion of Conway's game of life written in the C language using the SDL
     - K            - Kill all cells
     - R            - Repopulate the board
     - W            - Up
-    - A            - Left 
+    - A            - Left
     - S            - Down
     - D            - Right
     - Space        - Pause
@@ -14,3 +14,4 @@ A implementaion of Conway's game of life written in the C language using the SDL
     - Down-Arrow   - Slow the simulation down
     - Mouse button - Change the clicked cell's state
     - Scroll wheel - Zoom
+![Alt text](example_picures/conways_game_of_life.png?raw=true "Title")

@@ -164,8 +164,7 @@ int main(int argc, char** argv)
                     cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
                 } break;
                 default:
-                {
-                } break;
+                    break;
                 }
 
             }

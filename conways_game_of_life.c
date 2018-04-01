@@ -229,7 +229,6 @@ int main(int argc, char** argv)
         {
             if ( refresh_rate > 100 )
                 refresh_rate -= 100;
-
         }
         if ( keys.downButtonDown )
         {

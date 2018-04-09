@@ -45,10 +45,14 @@ typedef struct
 
 int main(int argc, char** argv)
 {
-    bool load_from_file = argc == 2 ? TRUE : FALSE;
+    // Load the board from an rse file if the user specifies a file
+    // NOTE: The code for reading the file in still needs to be implemented
+    bool load_from_file = argc == 2;
     char filename[ FILENAME_BUFFER_SIZE ];
     if ( load_from_file )
+    {
         strcpy_s( filename, FILENAME_BUFFER_SIZE, argv[ 1 ] );
+    }
 
     const int STARTING_POPULATION = 20000;
     // Setup SDL
@@ -90,7 +94,6 @@ int main(int argc, char** argv)
     int window_height, window_width;
     SDL_GL_GetDrawableSize( window, &window_width, &window_height );
     player_view.cell_size = 10;
-    printf( "Filename: %s\n", filename );
     player_view.height_in_cells = window_height / player_view.cell_size;
      player_view.width_in_cells = window_width / player_view.cell_size;
     player_view.window_height = window_height;
@@ -126,7 +129,9 @@ int main(int argc, char** argv)
         while ( SDL_PollEvent( &e ) )
         {
             if ( e.type == SDL_QUIT )
+            {
                 quit = TRUE;
+            }
             else if ( e.type == SDL_KEYDOWN )
             {
                 switch ( e.key.keysym.scancode )
@@ -164,8 +169,7 @@ int main(int argc, char** argv)
                     cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
                 } break;
                 default:
-                {
-                } break;
+                    break;
                 }
 
             }
@@ -229,13 +233,17 @@ int main(int argc, char** argv)
         if ( keys.upButtonDown )
         {
             if ( refresh_rate > 100 )
+            {
                 refresh_rate -= 100;
+            }
 
         }
         if ( keys.downButtonDown )
         {
             if ( refresh_rate < 10000 )
+            {
                 refresh_rate += 100;
+            }
         }
         if ( mouse.leftButtonPressed )
         {
@@ -261,7 +269,9 @@ int main(int argc, char** argv)
         // Clear the entire screen and redraw it
         SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
         if ( SDL_RenderClear( renderer ) )
+        {
             printf( "%s\n", SDL_GetError( ) );
+        }
         draw_board( cell_board, player_view, renderer );
     }
 

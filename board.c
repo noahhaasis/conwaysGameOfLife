@@ -4,7 +4,7 @@ inline int power_of_two( int n )
 {
     if ( n >= 0 && n <= 7 )
     {
-        int powers[ 32 ] = {
+        static int powers[ 32 ] = {
             1, 2, 4, 8, 16, 32, 64, 128,
             256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
             65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608,
@@ -199,10 +199,4 @@ void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Win
     player_view->camera_y += y;
     player_view->camera_y = player_view->camera_y < 0 ? 0 : player_view->camera_y;
     player_view->camera_y = !( player_view->camera_y + windowHeight / player_view->cell_size <= game_board->rows ) ? game_board->rows - windowHeight / player_view->cell_size : player_view->camera_y;
-}
-
-
-void get_board_dimensions_from_rse_file( int *w, int *h, const char** filename )
-{
-
 }

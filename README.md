@@ -1,5 +1,6 @@
 # Conways game of life
 A implementaion of [Conway's game of life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) written in the C language using the [SDL library](https://www.libsdl.org/).
+This is expected to run on windows.
 
 ## Keymappings:
     - Q            - Quit

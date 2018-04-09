@@ -12,11 +12,11 @@
 #include "SDL.h"
 #if DEBUG
 #define _CRTDBG_MAP_ALLOC
-#endif
+#endif // DEBUG
 #include <stdlib.h>  
 #if DEBUG
 #include <crtdbg.h>  
-#endif
+#endif // DEBUG
 
 #define FALSE 0
 #define TRUE 1

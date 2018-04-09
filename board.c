@@ -13,7 +13,9 @@ inline int power_of_two( int n )
         return powers[ n ];
     }
     else
+    {
         return ( int ) pow( ( double ) 2, n );
+    }
 }
 
 inline int board_byte_size( int rows, int columns )
@@ -61,7 +63,9 @@ int update_board( board* b )
         for ( int j = 0; j < b->columns; j++ )
         {
             if ( change_cell_state( j, i, updated_cell_state( j, i, b ), temp_board ) )
+            {
                 living_cells_count++;
+            }
         }
     }
 
@@ -75,7 +79,9 @@ int update_board( board* b )
 bool cell_state( int x, int y, board* b )
 {
     if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
+    {
         return FALSE;
+    }
     return (b->grid[ ( ( y*b->columns + x ) / 8 ) ] & power_of_two( ( y*b->columns + x ) % 8 )) != 0;
 }
 
@@ -95,7 +101,9 @@ bool updated_cell_state( int x, int y, board* b )
 
     // Return the new state of the cell at position board[x][y]
     if ( living_neighbor_cells == 3 || ( cell_state( x, y, b ) && ( living_neighbor_cells == 2 ) ) )
+    {
         return TRUE;
+    }
     return FALSE;
 }
 
@@ -103,11 +111,17 @@ bool updated_cell_state( int x, int y, board* b )
 bool change_cell_state( int x, int y, bool state, board* b )
 {
     if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
+    {
         return 0;
+    }
     if ( state )
-        return b->grid[ (y*b->columns + x)/8 ] |= power_of_two( ( y*b->columns + x ) % 8 );
-    else 
-        return b->grid[ (y*b->columns + x)/8 ] &= ~power_of_two( ( y*b->columns + x ) % 8 );
+    {
+        return b->grid[ ( y*b->columns + x ) / 8 ] |= power_of_two( ( y*b->columns + x ) % 8 );
+    }
+    else
+    {
+        return b->grid[ ( y*b->columns + x ) / 8 ] &= ~power_of_two( ( y*b->columns + x ) % 8 );
+    }
 }
 
 
@@ -154,7 +168,9 @@ void kill_all_cells( board * b )
 void resize_board_view( int zoom, view* player_view, board* world )
 {
     if ( !( ( player_view->cell_size > 2 && zoom < 0 ) || ( player_view->cell_size < 30 && zoom > 0 ) ) )
+    {
         return;
+    }
 
     // Update the view
     int center_y = player_view->camera_y + player_view->height_in_cells / 2;
@@ -185,11 +201,13 @@ void resize_board_view( int zoom, view* player_view, board* world )
 
 void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window )
 {
+    bool x_in_boundaries = player_view->camera_x >= 0 && ( player_view->camera_x <= game_board->columns - player_view->width_in_cells );
+    bool y_in_boundaries = player_view->camera_y >= 0 && ( player_view->camera_y <= game_board->rows - player_view->height_in_cells );
     // Return if the camera is out of bounds
-    if ( player_view->camera_x < 0 || player_view->camera_y < 0 ||
-        player_view->camera_x > game_board->columns - player_view->width_in_cells ||
-        player_view->camera_y > game_board->rows - player_view->height_in_cells )
+    if ( !( x_in_boundaries && y_in_boundaries ) )
+    {
         return;
+    }
     int windowHeight, windowWidth;
     SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );
     player_view->camera_x += x;

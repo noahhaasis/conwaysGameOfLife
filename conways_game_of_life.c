@@ -259,7 +259,7 @@ int main(int argc, char** argv)
         // Clear the entire screen and redraw it
         SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
         if ( SDL_RenderClear( renderer ) )
-            printf( "%s\n", SDL_GetError( ) );
+            fprintf( stderr, "%s\n", SDL_GetError( ) );
         draw_board( cell_board, player_view, renderer );
     }
 

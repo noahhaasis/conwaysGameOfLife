@@ -217,4 +217,14 @@ void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Win
     player_view->camera_y += y;
     player_view->camera_y = player_view->camera_y < 0 ? 0 : player_view->camera_y;
     player_view->camera_y = !( player_view->camera_y + windowHeight / player_view->cell_size <= game_board->rows ) ? game_board->rows - windowHeight / player_view->cell_size : player_view->camera_y;
+<<<<<<< HEAD
 }
+=======
+}
+
+
+void get_board_dimensions_from_rse_file( int *w, int *h, const char** filename )
+{
+
+}
+>>>>>>> 2ec3462c1728cd90918ca20e6df79b22749223e9

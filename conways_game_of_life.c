@@ -235,11 +235,7 @@ int main(int argc, char** argv)
             if ( refresh_rate > 100 )
             {
                 refresh_rate -= 100;
-<<<<<<< HEAD
             }
-
-=======
->>>>>>> 2ec3462c1728cd90918ca20e6df79b22749223e9
         }
         if ( keys.downButtonDown )
         {
@@ -272,13 +268,9 @@ int main(int argc, char** argv)
         // Clear the entire screen and redraw it
         SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
         if ( SDL_RenderClear( renderer ) )
-<<<<<<< HEAD
         {
-            printf( "%s\n", SDL_GetError( ) );
-        }
-=======
             fprintf( stderr, "%s\n", SDL_GetError( ) );
->>>>>>> 2ec3462c1728cd90918ca20e6df79b22749223e9
+        }
         draw_board( cell_board, player_view, renderer );
     }
 

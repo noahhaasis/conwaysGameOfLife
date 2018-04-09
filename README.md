@@ -16,3 +16,5 @@ This is expected to run on windows.
     - Mouse button - Change the clicked cell's state
     - Scroll wheel - Zoom
 ![Alt text](example_pictures/conways_game_of_life.png?raw=true "Title")
+
+![Alt text](example_pictures/animation.gif?raw=true "Title")

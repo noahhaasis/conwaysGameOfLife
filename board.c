@@ -132,11 +132,7 @@ bool updated_cell_state( int x, int y, board* b )
         cell_state( x + 1, y + 1, b ) ;
 
     // Return the new state of the cell at position board[x][y]
-    if ( living_neighbor_cells == 3 || ( cell_state( x, y, b ) && ( living_neighbor_cells == 2 ) ) )
-    {
-        return TRUE;
-    }
-    return FALSE;
+    return ( living_neighbor_cells == 3 || ( cell_state( x, y, b ) && ( living_neighbor_cells == 2 ) ) );
 }
 
 
@@ -144,9 +140,9 @@ bool change_cell_state( int x, int y, bool state, board* b )
 {
     if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
     {
-        return 0;
+        return FALSE;
     }
-    if ( state )
+    else if ( state )
     {
         return b->grid[ ( y*b->columns + x ) / 8 ] |= power_of_two( ( y*b->columns + x ) % 8 );
     }

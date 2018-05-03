@@ -15,6 +15,13 @@
 #define FALSE 0
 #define TRUE 1
 
+#define LIVING_CELL_R 255
+#define LIVING_CELL_G 255
+#define LIVING_CELL_B 255
+#define DEAD_CELL_R 20
+#define DEAD_CELL_G 20
+#define DEAD_CELL_B 20
+
 typedef Uint8 bool;
 
 typedef struct

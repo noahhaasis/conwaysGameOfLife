@@ -170,9 +170,9 @@ void draw_board( board* b, view player_view, SDL_Renderer* renderer )
             // Draw black squares for dead cells and white squares for living cells
             current_cell_alive = cell_state( column + player_view.camera_x, row + player_view.camera_y, b );
 
-            red_channel = current_cell_alive ? 255 : 20;
-            green_channel = current_cell_alive ? 255 : 20;
-            blue_channel = current_cell_alive ? 255 : 20;
+            red_channel = current_cell_alive ? LIVING_CELL_R : DEAD_CELL_R;
+            green_channel = current_cell_alive ? LIVING_CELL_G : DEAD_CELL_G;
+            blue_channel = current_cell_alive ? LIVING_CELL_B : DEAD_CELL_B;
 
             SDL_SetRenderDrawColor( renderer, red_channel, green_channel, blue_channel, 255);
             rectangle.x = column*player_view.cell_size;

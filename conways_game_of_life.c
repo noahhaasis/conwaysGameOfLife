@@ -22,6 +22,7 @@
 *     - Add support for the Run Length Encoded (RNE) file format
 *     - Replace the powers_of_two function with pow if it doesn't matter for the performance
 *     - Add a Makefile
+*     - Test on linux
 * 
 */
 #include "board.h"

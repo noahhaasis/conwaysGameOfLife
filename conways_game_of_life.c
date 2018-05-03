@@ -283,9 +283,6 @@ int main(int argc, char** argv)
     SDL_DestroyWindow( window );
     SDL_QuitSubSystem( flags );
     SDL_Quit( );
-#if DEBUG
-    _CrtDumpMemoryLeaks( );
-#endif
     return EXIT_SUCCESS;
 }
 

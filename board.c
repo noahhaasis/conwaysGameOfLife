@@ -18,6 +18,38 @@ inline int power_of_two( int n )
     }
 }
 
+int random( )
+{
+    static bool initialized;
+    if ( !initialized )
+    {
+        srand( time( NULL ) );
+        initialized = TRUE;
+    }
+    int rand_val = rand( );
+    if ( RAND_MAX < INT_MAX )
+    {
+        rand_val |= rand( ) << 16;
+    }
+    return rand_val;
+}
+
+/*
+ * Returns a uniformly distributed value in the range 0 to n-1.
+ * Thanks @fbartho pointing me to uniformly distributed values.
+ */
+int random_uniform( int n )
+{
+    int rand_val;
+    do
+    {
+        rand_val = random( );
+    }
+    while ( rand_val >= INT_MAX - ( INT_MAX % n ) );
+    return rand_val % ( n ) ;
+}
+
+
 inline int board_byte_size( int rows, int columns )
 {
     int size = sizeof( board ) + ( rows * columns ) / 8;
@@ -28,7 +60,6 @@ inline int board_byte_size( int rows, int columns )
 
 board* init_board( int rows, int columns, int living_cell_count )
 {
-    srand( (unsigned int)time( (time_t*)NULL ) );
     board* b = calloc( 1, board_byte_size( rows, columns ) );
     b->rows = rows;
     b->columns = columns;
@@ -37,7 +68,8 @@ board* init_board( int rows, int columns, int living_cell_count )
     for ( int i = 0; i < living_cell_count; i++ )
     {
         // Generate a 32 bit random value
-        rand_coord = (rand( ) << 16 | rand()) % ( rows*columns );
+        Uint32 rand_range = ( rows * columns );
+        rand_coord = random_uniform(rand_range);
         if ( (b->grid[rand_coord / 8]  & power_of_two(rand_coord % 8)) == TRUE )
         {
             i--;

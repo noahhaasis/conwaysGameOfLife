@@ -253,7 +253,8 @@ int main(int argc, char** argv)
             int cursor_x, cursor_y;
             SDL_GetGlobalMouseState( &cursor_x, &cursor_y );
             // change the cell state if the mouse position changed
-            if ( !( cursor_x / player_view.cell_size == mouse.last_cursor_x / player_view.cell_size && cursor_y / player_view.cell_size == mouse.last_cursor_y / player_view.cell_size ) )
+            if ( !( cursor_x / player_view.cell_size == mouse.last_cursor_x / player_view.cell_size && 
+                   cursor_y / player_view.cell_size == mouse.last_cursor_y / player_view.cell_size ) )
             {
                 Uint32 row = (Uint32) player_view.camera_y + cursor_y / player_view.cell_size;
                 Uint32 column = (Uint32) player_view.camera_x + cursor_x / player_view.cell_size;

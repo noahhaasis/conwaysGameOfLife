@@ -1,22 +1,5 @@
 #include "board.h"
 
-inline int power_of_two( int n )
-{
-    if ( n >= 0 && n <= 7 )
-    {
-        static int powers[ 32 ] = {
-            1, 2, 4, 8, 16, 32, 64, 128,
-            256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
-            65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608,
-            16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, 2147483648
-        };
-        return powers[ n ];
-    }
-    else
-    {
-        return ( int ) pow( ( double ) 2, n );
-    }
-}
 
 int random( )
 {
@@ -71,12 +54,12 @@ board* init_board( int rows, int columns, int living_cell_count )
         // Generate a 32 bit random value
         Uint32 rand_range = ( rows * columns );
         rand_coord = random_uniform( rand_range );
-        if ( ( b->grid[ rand_coord / 8] & power_of_two( rand_coord % 8 ) ) == TRUE )
+        if ( ( b->grid[ rand_coord / 8] & ( int ) powf( 2, rand_coord % 8 ) ) == TRUE )
         {
             i--;
             continue;
         }
-        b->grid[ rand_coord / 8 ] |= power_of_two( rand_coord % 8 );
+        b->grid[ rand_coord / 8 ] |= ( int ) powf( 2, rand_coord % 8 );
     }
     return b;
 }
@@ -115,7 +98,7 @@ bool cell_state( int x, int y, board* b )
     {
         return FALSE;
     }
-    return ( b->grid[ ( ( y*b->columns + x ) / 8 ) ] & power_of_two( ( y*b->columns + x ) % 8 ) ) != 0;
+    return ( b->grid[ ( ( y*b->columns + x ) / 8 ) ] & ( int ) powf( 2, ( y*b->columns + x ) % 8 ) ) != 0;
 }
 
 
@@ -145,11 +128,11 @@ bool change_cell_state( int x, int y, bool state, board* b )
     }
     else if ( state )
     {
-        return b->grid[ ( y*b->columns + x ) / 8 ] |= power_of_two( ( y*b->columns + x ) % 8 );
+        return b->grid[ ( y*b->columns + x ) / 8 ] |= ( int ) powf( 2, ( y*b->columns + x ) % 8 );
     }
     else
     {
-        return b->grid[ ( y*b->columns + x ) / 8 ] &= ~power_of_two( ( y*b->columns + x ) % 8 );
+        return b->grid[ ( y*b->columns + x ) / 8 ] &= ~( int ) powf( 2, ( y*b->columns + x ) % 8 );
     }
 }
 
@@ -223,8 +206,10 @@ void resize_board_view( int zoom, view* player_view, board* world )
     {
         player_view->camera_x = player_view->camera_x < 0 ? 0 : player_view->camera_x;
         player_view->camera_y = player_view->camera_y < 0 ? 0 : player_view->camera_y;
-        player_view->camera_x = ( player_view->camera_x + player_view->width_in_cells ) > world->columns ? world->columns - player_view->width_in_cells : player_view->camera_x;
-        player_view->camera_y = ( player_view->camera_y + player_view->height_in_cells ) > world->rows ? world->rows - player_view->height_in_cells : player_view->camera_y;
+        player_view->camera_x = ( player_view->camera_x + player_view->width_in_cells ) > world->columns ?
+            world->columns - player_view->width_in_cells : player_view->camera_x;
+        player_view->camera_y = ( player_view->camera_y + player_view->height_in_cells ) > world->rows ?
+            world->rows - player_view->height_in_cells : player_view->camera_y;
     }
 }
 
@@ -241,9 +226,11 @@ void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Win
     SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );
     player_view->camera_x += x;
     player_view->camera_x = player_view->camera_x < 0 ? 0 : player_view->camera_x;
-    player_view->camera_x = !( player_view->camera_x + windowWidth / player_view->cell_size <= game_board->columns ) ? game_board->columns - windowWidth / player_view->cell_size : player_view->camera_x;
+    player_view->camera_x = !( player_view->camera_x + windowWidth / player_view->cell_size <= game_board->columns ) ? 
+        game_board->columns - windowWidth / player_view->cell_size : player_view->camera_x;
 
     player_view->camera_y += y;
     player_view->camera_y = player_view->camera_y < 0 ? 0 : player_view->camera_y;
-    player_view->camera_y = !( player_view->camera_y + windowHeight / player_view->cell_size <= game_board->rows ) ? game_board->rows - windowHeight / player_view->cell_size : player_view->camera_y;
+    player_view->camera_y = !( player_view->camera_y + windowHeight / player_view->cell_size <= game_board->rows ) ?
+        game_board->rows - windowHeight / player_view->cell_size : player_view->camera_y;
 }

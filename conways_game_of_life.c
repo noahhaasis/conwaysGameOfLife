@@ -20,7 +20,6 @@
 *     - Store the board as an array of 32 or 64 bit integers depending on the system's architecture
 *     - Measure and improve the performance
 *     - Add support for the Run Length Encoded (RNE) file format
-*     - Replace the powers_of_two function with pow if it doesn't matter for the performance
 *     - Add a Makefile
 *     - Test on linux
 * 

@@ -29,17 +29,17 @@
 #define FILENAME_BUFFER_SIZE 256
 
 typedef struct {
-    bool wButtonDown;
-    bool aButtonDown;
-    bool sButtonDown;
-    bool dButtonDown;
-    bool upButtonDown;
-    bool downButtonDown;
+    Uint8 wButtonDown;
+    Uint8 aButtonDown;
+    Uint8 sButtonDown;
+    Uint8 dButtonDown;
+    Uint8 upButtonDown;
+    Uint8 downButtonDown;
 } buttons;
 
 typedef struct
 {
-    bool leftButtonPressed;
+    Uint8 leftButtonPressed;
     Uint32 last_cursor_x;
     Uint32 last_cursor_y;
 } mouseState;
@@ -253,7 +253,8 @@ int main(int argc, char** argv)
             int cursor_x, cursor_y;
             SDL_GetGlobalMouseState( &cursor_x, &cursor_y );
             // change the cell state if the mouse position changed
-            if ( !( cursor_x / player_view.cell_size == mouse.last_cursor_x / player_view.cell_size && cursor_y / player_view.cell_size == mouse.last_cursor_y / player_view.cell_size ) )
+            if ( !( cursor_x / player_view.cell_size == mouse.last_cursor_x / player_view.cell_size && 
+                   cursor_y / player_view.cell_size == mouse.last_cursor_y / player_view.cell_size ) )
             {
                 Uint32 row = (Uint32) player_view.camera_y + cursor_y / player_view.cell_size;
                 Uint32 column = (Uint32) player_view.camera_x + cursor_x / player_view.cell_size;
@@ -287,3 +288,4 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
+>>>>>>> c2b4c301397f760b21c49aa55ad4cef1eb802a07

@@ -29,17 +29,17 @@
 #define FILENAME_BUFFER_SIZE 256
 
 typedef struct {
-    Uint8 wButtonDown;
-    Uint8 aButtonDown;
-    Uint8 sButtonDown;
-    Uint8 dButtonDown;
-    Uint8 upButtonDown;
-    Uint8 downButtonDown;
+    bool wButtonDown;
+    bool aButtonDown;
+    bool sButtonDown;
+    bool dButtonDown;
+    bool upButtonDown;
+    bool downButtonDown;
 } buttons;
 
 typedef struct
 {
-    Uint8 leftButtonPressed;
+    bool leftButtonPressed;
     Uint32 last_cursor_x;
     Uint32 last_cursor_y;
 } mouseState;

@@ -27,6 +27,7 @@ int random( )
         initialized = TRUE;
     }
     int rand_val = rand( );
+    // This is not constant! RAND_MAX can vary on different systems!
     if ( RAND_MAX < INT_MAX )
     {
         rand_val |= rand( ) << 16;

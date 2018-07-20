@@ -47,7 +47,7 @@ int random_uniform( int n )
         rand_val = random( );
     }
     while ( rand_val >= INT_MAX - ( INT_MAX % n ) );
-    return rand_val % ( n ) ;
+    return rand_val % n ;
 }
 
 
@@ -70,13 +70,13 @@ board* init_board( int rows, int columns, int living_cell_count )
     {
         // Generate a 32 bit random value
         Uint32 rand_range = ( rows * columns );
-        rand_coord = random_uniform(rand_range);
-        if ( (b->grid[rand_coord / 8]  & power_of_two(rand_coord % 8)) == TRUE )
+        rand_coord = random_uniform( rand_range );
+        if ( ( b->grid[ rand_coord / 8] & power_of_two( rand_coord % 8 ) ) == TRUE )
         {
             i--;
             continue;
         }
-        b->grid[ rand_coord / 8 ] |= power_of_two(rand_coord % 8);
+        b->grid[ rand_coord / 8 ] |= power_of_two( rand_coord % 8 );
     }
     return b;
 }
@@ -85,7 +85,7 @@ board* init_board( int rows, int columns, int living_cell_count )
 int update_board( board* b )
 {
     // Allocate a temporary board
-    board* temp_board = malloc( board_byte_size( b->rows, b->columns) );
+    board* temp_board = malloc( board_byte_size( b->rows, b->columns ) );
     temp_board->rows = b->rows;
     temp_board->columns = b->columns;
 
@@ -115,7 +115,7 @@ bool cell_state( int x, int y, board* b )
     {
         return FALSE;
     }
-    return (b->grid[ ( ( y*b->columns + x ) / 8 ) ] & power_of_two( ( y*b->columns + x ) % 8 )) != 0;
+    return ( b->grid[ ( ( y*b->columns + x ) / 8 ) ] & power_of_two( ( y*b->columns + x ) % 8 ) ) != 0;
 }
 
 
@@ -175,7 +175,7 @@ void draw_board( board* b, view player_view, SDL_Renderer* renderer )
             green_channel = current_cell_alive ? LIVING_CELL_G : DEAD_CELL_G;
             blue_channel = current_cell_alive ? LIVING_CELL_B : DEAD_CELL_B;
 
-            SDL_SetRenderDrawColor( renderer, red_channel, green_channel, blue_channel, 255);
+            SDL_SetRenderDrawColor( renderer, red_channel, green_channel, blue_channel, 255 );
             rectangle.x = column*player_view.cell_size;
             rectangle.y = row*player_view.cell_size;
             SDL_RenderDrawRect( renderer, &rectangle );

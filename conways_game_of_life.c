@@ -168,10 +168,9 @@ int main(int argc, char** argv)
                     kill_all_cells( cell_board );
                     break;
                 case SDL_SCANCODE_R:
-                {
                     free( cell_board );
                     cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
-                } break;
+                    break;
                 default:
                     break;
                 }
@@ -253,7 +252,8 @@ int main(int argc, char** argv)
             int cursor_x, cursor_y;
             SDL_GetGlobalMouseState( &cursor_x, &cursor_y );
             // change the cell state if the mouse position changed
-            if ( !( cursor_x / player_view.cell_size == mouse.last_cursor_x / player_view.cell_size && cursor_y / player_view.cell_size == mouse.last_cursor_y / player_view.cell_size ) )
+            if ( !( cursor_x / player_view.cell_size == mouse.last_cursor_x / player_view.cell_size && 
+                    cursor_y / player_view.cell_size == mouse.last_cursor_y / player_view.cell_size ) )
             {
                 Uint32 row = (Uint32) player_view.camera_y + cursor_y / player_view.cell_size;
                 Uint32 column = (Uint32) player_view.camera_x + cursor_x / player_view.cell_size;
@@ -263,7 +263,7 @@ int main(int argc, char** argv)
             }
         }
 
-        if ( !(( SDL_GetTicks( ) - last_update_time ) < refresh_rate) && ! paused)
+        if ( !( ( SDL_GetTicks( ) - last_update_time ) < refresh_rate ) && ! paused)
         {
             living_cells = update_board( cell_board );
             last_update_time = SDL_GetTicks( );

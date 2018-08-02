@@ -22,7 +22,9 @@
 *     - Add support for the Run Length Encoded (RNE) file format
 *     - Add a Makefile
 *     - Test on linux
-* 
+*     - Extract complicated boolean conditions in board.c into functions
+*     - Write a function set cell state and use it everywhere instead of bitmasking manually
+*     - Remove everything regarding the RNE file format (YAGN - You ain't gonna need it)
 */
 #include "board.h"
 #define FILENAME_BUFFER_SIZE 256

@@ -1,5 +1,22 @@
 #include "board.h"
 
+/* Returns min or max if num is less then or greater then either of them. */
+int clamp( int min, int max, int num)
+{
+    if ( num < min ) { return min; }
+    if ( num > max ) { return max; }
+    return num;
+}
+
+/* Restricts the x and y position of the camera or player view to fit into the board */
+void clamp_camera_pos( view *cam, board *b )
+{
+    int max_camera_x = b->columns - cam->width_in_cells;
+    cam->camera_x = clamp( 0, max_camera_x, cam->camera_x );
+
+    int max_camera_y = b->rows - cam->height_in_cells;
+    cam->camera_y = clamp( 0, max_camera_y, cam->camera_y );
+}
 
 int random( )
 {
@@ -89,49 +106,53 @@ int update_board( board* b )
     return living_cells_count;
 }
 
+bool pos_in_board( int x, int y, board *b )
+{
+    return x >= 0 && y >= 0 && x < b->columns && y < b->rows;
+}
 
 bool cell_state( int x, int y, board* b )
 {
-    if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
+    if ( !pos_in_board( x, y, b ) )
     {
         return FALSE;
     }
     return ( b->grid[ ( ( y*b->columns + x ) / 8 ) ] & ( int ) powf( 2, ( y*b->columns + x ) % 8 ) ) != 0;
 }
 
+int living_neighbors( int x, int y, board *b )
+{
+    return cell_state( x - 1, y - 1, b ) +
+           cell_state( x    , y - 1, b ) +
+           cell_state( x + 1, y - 1, b ) +
+           cell_state( x - 1, y    , b ) +
+           cell_state( x + 1, y    , b ) +
+           cell_state( x - 1, y + 1, b ) +
+           cell_state( x    , y + 1, b ) +
+           cell_state( x + 1, y + 1, b );
+}
 
 bool updated_cell_state( int x, int y, board* b )
 {
     // Count the living neighbors
-    int living_neighbor_cells = 
-        cell_state( x - 1, y - 1, b ) +
-        cell_state( x, y - 1, b ) +
-        cell_state( x + 1, y - 1, b ) +
-        cell_state( x - 1, y, b ) +
-        cell_state( x + 1, y, b ) +
-        cell_state( x - 1, y + 1, b ) +
-        cell_state( x, y + 1, b ) +
-        cell_state( x + 1, y + 1, b ) ;
+    int living_neighbor_cells =  living_neigbors( x, y, b );
 
     // Return the new state of the cell at position board[x][y]
     return ( living_neighbor_cells == 3 || ( cell_state( x, y, b ) && ( living_neighbor_cells == 2 ) ) );
 }
 
 
-bool change_cell_state( int x, int y, bool state, board* b )
+bool change_cell_state( int x, int y, bool state, board *b )
 {
-    if ( x < 0 || y < 0 || x >= b->columns || y >= b->rows )
+    if ( !pos_in_board( x, y, b ) )
     {
         return FALSE;
     }
-    else if ( state )
+    if ( state )
     {
         return b->grid[ ( y*b->columns + x ) / 8 ] |= ( int ) powf( 2, ( y*b->columns + x ) % 8 );
     }
-    else
-    {
-        return b->grid[ ( y*b->columns + x ) / 8 ] &= ~( int ) powf( 2, ( y*b->columns + x ) % 8 );
-    }
+    return b->grid[ ( y*b->columns + x ) / 8 ] &= ~( int ) powf( 2, ( y*b->columns + x ) % 8 );
 }
 
 
@@ -152,9 +173,9 @@ void draw_board( board* b, view player_view, SDL_Renderer* renderer )
             // Draw black squares for dead cells and white squares for living cells
             current_cell_alive = cell_state( column + player_view.camera_x, row + player_view.camera_y, b );
 
-            red_channel = current_cell_alive ? LIVING_CELL_R : DEAD_CELL_R;
+            red_channel   = current_cell_alive ? LIVING_CELL_R : DEAD_CELL_R;
             green_channel = current_cell_alive ? LIVING_CELL_G : DEAD_CELL_G;
-            blue_channel = current_cell_alive ? LIVING_CELL_B : DEAD_CELL_B;
+            blue_channel  = current_cell_alive ? LIVING_CELL_B : DEAD_CELL_B;
 
             SDL_SetRenderDrawColor( renderer, red_channel, green_channel, blue_channel, 255 );
             rectangle.x = column*player_view.cell_size;
@@ -169,6 +190,13 @@ void draw_board( board* b, view player_view, SDL_Renderer* renderer )
 void kill_all_cells( board * b )
 {
     memset( ( char* ) b + sizeof( board ), 0, board_byte_size( b->rows, b->columns ) - sizeof( board ) );
+}
+
+bool camera_in_bounds( view *v, board* b )
+{
+    bool x_in_boundaries = v->camera_x >= 0 && ( v->camera_x <= b->columns - v->width_in_cells );
+    bool y_in_boundaries = v->camera_y >= 0 && ( v->camera_y <= b->rows - v->height_in_cells );
+    return x_in_boundaries && y_in_boundaries;
 }
 
 
@@ -199,36 +227,20 @@ void resize_board_view( int zoom, view* player_view, board* world )
     player_view->movement_speed_in_cells = player_view->min_movement_speed_in_pixels / player_view->cell_size;
     player_view->movement_speed_in_cells = player_view->movement_speed_in_cells ? player_view->movement_speed_in_cells : 1;
 
-    // Change the camera position in case it is out of bounds and the view is not bigger then the board
-    if ( !( player_view->height_in_cells > world->rows || player_view->width_in_cells > world->columns ) )
-    {
-        player_view->camera_x = player_view->camera_x < 0 ? 0 : player_view->camera_x;
-        player_view->camera_y = player_view->camera_y < 0 ? 0 : player_view->camera_y;
-        player_view->camera_x = ( player_view->camera_x + player_view->width_in_cells ) > world->columns ?
-            world->columns - player_view->width_in_cells : player_view->camera_x;
-        player_view->camera_y = ( player_view->camera_y + player_view->height_in_cells ) > world->rows ?
-            world->rows - player_view->height_in_cells : player_view->camera_y;
-    }
+    // Change the camera position to fit into the board
+    clamp_camera_pos( player_view, world );
 }
 
 void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window )
 {
-    bool x_in_boundaries = player_view->camera_x >= 0 && ( player_view->camera_x <= game_board->columns - player_view->width_in_cells );
-    bool y_in_boundaries = player_view->camera_y >= 0 && ( player_view->camera_y <= game_board->rows - player_view->height_in_cells );
-    // Return if the camera is out of bounds
-    if ( !( x_in_boundaries && y_in_boundaries ) )
+    if ( !camera_in_bounds( player_view, game_board ) )
     {
         return;
     }
     int windowHeight, windowWidth;
     SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );
-    player_view->camera_x += x;
-    player_view->camera_x = player_view->camera_x < 0 ? 0 : player_view->camera_x;
-    player_view->camera_x = !( player_view->camera_x + windowWidth / player_view->cell_size <= game_board->columns ) ? 
-        game_board->columns - windowWidth / player_view->cell_size : player_view->camera_x;
 
+    player_view->camera_x += x;
     player_view->camera_y += y;
-    player_view->camera_y = player_view->camera_y < 0 ? 0 : player_view->camera_y;
-    player_view->camera_y = !( player_view->camera_y + windowHeight / player_view->cell_size <= game_board->rows ) ?
-        game_board->rows - windowHeight / player_view->cell_size : player_view->camera_y;
+    clamp_camera_pos( player_view, game_board );
 }

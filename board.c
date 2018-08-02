@@ -51,9 +51,7 @@ board* init_board( int rows, int columns, int living_cell_count )
     Uint32 rand_coord;
     for ( int i = 0; i < living_cell_count; i++ )
     {
-        // Generate a 32 bit random value
-        Uint32 rand_range = ( rows * columns );
-        rand_coord = random_uniform( rand_range );
+        rand_coord = random_uniform( rows * columns );
         if ( ( b->grid[ rand_coord / 8] & ( int ) powf( 2, rand_coord % 8 ) ) == TRUE )
         {
             i--;

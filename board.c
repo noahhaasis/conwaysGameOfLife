@@ -20,7 +20,7 @@ int random( )
 
 /*
  * Returns a uniformly distributed value in the range 0 to n-1.
- * Thanks @fbartho pointing me to uniformly distributed values.
+ * Thanks @fbartho for pointing me to uniformly distributed values.
  */
 int random_uniform( int n )
 {

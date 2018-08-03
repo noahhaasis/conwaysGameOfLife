@@ -238,7 +238,6 @@ inline void set_view_pos_to_center( int x, int y, view *v )
 * Resizes the view. Adds the zoom factor the cell_size.
 * The center keeps the same.
 */
-// TODO(Noah): Can't zoom back in if I'm fully zoomed out
 void resize_board_view( int zoom, view* player_view, board* world )
 {
     if ( !( player_view->cell_size > MIN_CELL_SIZE && ZOOM_OUT( zoom ) ||

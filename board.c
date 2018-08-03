@@ -277,8 +277,6 @@ void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Win
     {
         return;
     }
-    int windowHeight, windowWidth;
-    SDL_GL_GetDrawableSize( window, &windowWidth, &windowHeight );
 
     player_view->camera_x += x;
     player_view->camera_y += y;

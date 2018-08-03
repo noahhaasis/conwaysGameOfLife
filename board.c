@@ -273,12 +273,10 @@ void resize_board_view( int zoom, view* player_view, board* world )
 
 void move_camera_by( int x, int y, view* player_view, board* game_board, SDL_Window* window )
 {
-    if ( !camera_in_bounds( player_view, game_board ) )
+    if ( camera_in_bounds( player_view, game_board ) )
     {
-        return;
+        player_view->camera_x += x;
+        player_view->camera_y += y;
+        clamp_view_pos( player_view, game_board );
     }
-
-    player_view->camera_x += x;
-    player_view->camera_y += y;
-    clamp_view_pos( player_view, game_board );
 }

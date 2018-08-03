@@ -186,14 +186,13 @@ void draw_board( board* b, view *player_view, SDL_Renderer* renderer )
     SDL_Rect rectangle;
     rectangle.w = rectangle.h = player_view->cell_size;
 
-    // Iterate over all cells and draw them to the renderer
+    // Iterate over all cells in the view and draw them to the renderer
     int screenHeight, screenWidth;
     SDL_GetRendererOutputSize( renderer, &screenWidth, &screenHeight );
     for ( int row = 0; row < player_view->height_in_cells; row++ )
     {
         for ( int column = 0; column < player_view->width_in_cells; column++ )
         {
-            // Draw black squares for dead cells and white squares for living cells
             current_cell_alive = cell_state( column + player_view->camera_x, row + player_view->camera_y, b );
 
             red_channel   = current_cell_alive ? LIVING_CELL_R : DEAD_CELL_R;

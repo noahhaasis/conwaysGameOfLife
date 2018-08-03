@@ -68,15 +68,14 @@ bool cell_state( int x, int y, board* b );
 bool updated_cell_state( int x, int y, board* b );
 
 /**
-* Write to the cell at the location x, y on the given board
-* and return the written value.
+* Invert the state of the given cell ( alive -> dead and dead -> alive )
 */
-bool change_cell_state( int x, int y, bool state, board* b );
+void toggle_cell_state( int x, int y, board *b );
 
 /** 
 * Draw the given board to the window.
 */
-void draw_board( board* b, view player_view, SDL_Renderer* renderer );
+void draw_board( board* b, view *player_view, SDL_Renderer* renderer );
 
 /**
 * Kill all cells in the given board.
@@ -84,7 +83,8 @@ void draw_board( board* b, view player_view, SDL_Renderer* renderer );
 void kill_all_cells( board* b );
 
 /**
-* Resizes the view. Adds the zoom factor the cell_size.
+* Resizes the view. Adds the zoom factor the cell_size. 
+* ( i.e a negative zoom factor zooms out and a positive zoom factor zooms in)
 */
 void resize_board_view( int zoom, view* player_view, board* world );
 

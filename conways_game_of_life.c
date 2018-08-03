@@ -122,7 +122,7 @@ int main(int argc, char** argv)
     uint8_t paused = FALSE;
 
     // Draw the first state of the board
-    draw_board( cell_board, player_view, renderer );
+    draw_board( cell_board, &player_view, renderer );
 
     buttons keys = { FALSE };
     mouseState mouse = { FALSE, (Uint16)-1, (Uint16)-1 };
@@ -137,69 +137,51 @@ int main(int argc, char** argv)
             {
                 quit = TRUE;
             }
-            else if ( e.type == SDL_KEYDOWN )
+            else if ( e.type == SDL_KEYDOWN || e.type == SDL_KEYUP )
             {
                 switch ( e.key.keysym.scancode )
                 {
                 case SDL_SCANCODE_W:
-                    keys.wButtonDown = TRUE;
+                    keys.wButtonDown = e.type == SDL_KEYDOWN;
                     break;
                 case SDL_SCANCODE_A:
-                    keys.aButtonDown = TRUE;
+                    keys.aButtonDown = e.type == SDL_KEYDOWN;
                     break;
                 case SDL_SCANCODE_S:
-                    keys.sButtonDown = TRUE;
+                    keys.sButtonDown = e.type == SDL_KEYDOWN;
                     break;
                 case SDL_SCANCODE_D:
-                    keys.dButtonDown = TRUE;
+                    keys.dButtonDown = e.type == SDL_KEYDOWN;
                     break;
                 case SDL_SCANCODE_SPACE:
-                    paused = !paused;
+                    paused = e.type == SDL_KEYDOWN ? !paused : paused;
                     break;
                 case SDL_SCANCODE_Q:
                     quit = TRUE;
                     break;
                 case SDL_SCANCODE_UP:
-                    keys.upButtonDown = TRUE;
+                    keys.upButtonDown = e.type == SDL_KEYDOWN;
                     break;
                 case SDL_SCANCODE_DOWN:
-                    keys.downButtonDown = TRUE;
+                    keys.downButtonDown = e.type == SDL_KEYDOWN;
                     break;
                 case SDL_SCANCODE_K:
-                    kill_all_cells( cell_board );
+                    if ( e.type == SDL_KEYDOWN )
+                    {
+                        kill_all_cells( cell_board );
+                    }
                     break;
                 case SDL_SCANCODE_R:
-                    free( cell_board );
-                    cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
+                    if ( e.type == SDL_KEYDOWN )
+                    {
+                        free( cell_board );
+                        cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
+                    }
                     break;
                 default:
                     break;
                 }
 
-            }
-            else if ( e.type == SDL_KEYUP )
-            {
-                switch ( e.key.keysym.scancode )
-                {
-                case SDL_SCANCODE_W:
-                    keys.wButtonDown = FALSE;
-                    break;
-                case SDL_SCANCODE_A:
-                    keys.aButtonDown = FALSE;
-                    break;
-                case SDL_SCANCODE_S:
-                    keys.sButtonDown = FALSE;
-                    break;
-                case SDL_SCANCODE_D:
-                    keys.dButtonDown = FALSE;
-                    break;
-                case SDL_SCANCODE_UP:
-                    keys.upButtonDown = FALSE;
-                    break;
-                case SDL_SCANCODE_DOWN:
-                    keys.downButtonDown = FALSE;
-                    break;
-                }
             }
             else if ( e.type == SDL_MOUSEBUTTONUP )
             {
@@ -258,13 +240,13 @@ int main(int argc, char** argv)
             {
                 Uint32 row = (Uint32) player_view.camera_y + cursor_y / player_view.cell_size;
                 Uint32 column = (Uint32) player_view.camera_x + cursor_x / player_view.cell_size;
-                change_cell_state( column, row, !cell_state( column, row, cell_board ), cell_board );
+                toggle_cell_state( column, row, cell_board );
                 mouse.last_cursor_x = cursor_x;
                 mouse.last_cursor_y = cursor_y;
             }
         }
 
-        if ( !( ( SDL_GetTicks( ) - last_update_time ) < refresh_rate ) && ! paused)
+        if ( !( ( SDL_GetTicks( ) - last_update_time ) < refresh_rate ) && !paused )
         {
             living_cells = update_board( cell_board );
             last_update_time = SDL_GetTicks( );
@@ -276,7 +258,7 @@ int main(int argc, char** argv)
         {
             fprintf( stderr, "%s\n", SDL_GetError( ) );
         }
-        draw_board( cell_board, player_view, renderer );
+        draw_board( cell_board, &player_view, renderer );
     }
 
     // Clean up and exit

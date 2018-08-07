@@ -72,18 +72,19 @@ board* init_board( int rows, int columns, int living_cell_count )
     b->rows = rows;
     b->columns = columns;
     // Populate the board
-    Uint32 rand_coord;
+    Uint32 rand_x, rand_y;
     int bitmask;
     for ( int i = 0; i < living_cell_count; i++ )
     {
-        rand_coord = random_uniform( rows * columns );
-        bitmask = ( int ) powf( 2, rand_coord % 8 );
-        if ( b->grid[ rand_coord / 8] & bitmask )
+        rand_x = random_uniform( columns );
+        rand_y = random_uniform( rows );
+        // Skip cells that are already alive
+        if ( cell_state( rand_x, rand_y, b ) )
         {
             i--;
             continue;
         }
-        b->grid[ rand_coord / 8 ] |= bitmask;
+        change_cell_state( rand_x, rand_y, TRUE, b );
     }
     return b;
 }

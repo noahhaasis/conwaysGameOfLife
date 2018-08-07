@@ -246,7 +246,7 @@ int main(int argc, char** argv)
                 mouse.last_cursor_y = cursor_y;
             }
         }
-
+        // Only update the board at the interval stored in refresh_rate
         if ( !( ( SDL_GetTicks( ) - last_update_time ) < refresh_rate ) && !paused )
         {
             living_cells = update_board( cell_board );

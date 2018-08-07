@@ -155,7 +155,7 @@ int main(int argc, char** argv)
                     keys.dButtonDown = isKeydown;
                     break;
                 case SDL_SCANCODE_SPACE:
-                    paused = isKeydown ? !paused : paused;
+                    paused = isKeydown ^ paused;
                     break;
                 case SDL_SCANCODE_Q:
                     quit = TRUE;

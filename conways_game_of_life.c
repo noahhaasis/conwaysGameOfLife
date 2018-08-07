@@ -139,40 +139,41 @@ int main(int argc, char** argv)
             }
             else if ( e.type == SDL_KEYDOWN || e.type == SDL_KEYUP )
             {
+                bool isKeydown = e.type == SDL_KEYDOWN;
                 switch ( e.key.keysym.scancode )
                 {
                 case SDL_SCANCODE_W:
-                    keys.wButtonDown = e.type == SDL_KEYDOWN;
+                    keys.wButtonDown = isKeydown;
                     break;
                 case SDL_SCANCODE_A:
-                    keys.aButtonDown = e.type == SDL_KEYDOWN;
+                    keys.aButtonDown = isKeydown;
                     break;
                 case SDL_SCANCODE_S:
-                    keys.sButtonDown = e.type == SDL_KEYDOWN;
+                    keys.sButtonDown = isKeydown;
                     break;
                 case SDL_SCANCODE_D:
-                    keys.dButtonDown = e.type == SDL_KEYDOWN;
+                    keys.dButtonDown = isKeydown;
                     break;
                 case SDL_SCANCODE_SPACE:
-                    paused = e.type == SDL_KEYDOWN ? !paused : paused;
+                    paused = isKeydown ? !paused : paused;
                     break;
                 case SDL_SCANCODE_Q:
                     quit = TRUE;
                     break;
                 case SDL_SCANCODE_UP:
-                    keys.upButtonDown = e.type == SDL_KEYDOWN;
+                    keys.upButtonDown = isKeydown;
                     break;
                 case SDL_SCANCODE_DOWN:
-                    keys.downButtonDown = e.type == SDL_KEYDOWN;
+                    keys.downButtonDown = isKeydown;
                     break;
                 case SDL_SCANCODE_K:
-                    if ( e.type == SDL_KEYDOWN )
+                    if ( isKeydown )
                     {
                         kill_all_cells( cell_board );
                     }
                     break;
                 case SDL_SCANCODE_R:
-                    if ( e.type == SDL_KEYDOWN )
+                    if ( isKeydown )
                     {
                         free( cell_board );
                         cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );

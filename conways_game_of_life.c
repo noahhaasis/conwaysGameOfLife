@@ -18,7 +18,7 @@
 *
 * TODO:
 *     - Store the board as an array of 32 or 64 bit integers depending on the system's architecture
-*     - Measure and improve the performance
+*     - Measure and improve the performance (There probably is a way to optimize the update_board function)
 *     - Add support for the Run Length Encoded (RNE) file format
 *     - Add a Makefile
 *     - Test on linux

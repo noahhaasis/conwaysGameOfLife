@@ -100,7 +100,7 @@ int main(int argc, char** argv)
     SDL_GL_GetDrawableSize( window, &window_width, &window_height );
     player_view.cell_size = 10;
     player_view.height_in_cells = window_height / player_view.cell_size;
-     player_view.width_in_cells = window_width / player_view.cell_size;
+    player_view.width_in_cells = window_width / player_view.cell_size;
     player_view.window_height = window_height;
     player_view.window_width = window_width;
     player_view.movement_speed_in_cells = 3;

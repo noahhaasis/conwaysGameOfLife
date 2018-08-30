@@ -34,6 +34,8 @@ typedef struct {
     bool aButtonDown;
     bool sButtonDown;
     bool dButtonDown;
+    bool kButtonDown;
+    bool rButtonDown;
     bool upButtonDown;
     bool downButtonDown;
 } buttons;
@@ -45,25 +47,47 @@ typedef struct
     Uint32 last_cursor_y;
 } mouseState;
 
+const Uint32 STARTING_POPULATION = 20000;
 
+
+void update_button_states( buttons *bts, SDL_Event e, bool isKeydown )
+{
+    switch ( e.key.keysym.scancode )
+    {
+    case SDL_SCANCODE_W:
+        bts->wButtonDown = isKeydown;
+        break;
+    case SDL_SCANCODE_A:
+        bts->aButtonDown = isKeydown;
+        break;
+    case SDL_SCANCODE_S:
+        bts->sButtonDown = isKeydown;
+        break;
+    case SDL_SCANCODE_D:
+        bts->dButtonDown = isKeydown;
+        break;
+    case SDL_SCANCODE_UP:
+        bts->upButtonDown = isKeydown;
+        break;
+    case SDL_SCANCODE_DOWN:
+        bts->downButtonDown = isKeydown;
+        break;
+    case SDL_SCANCODE_K:
+        bts->kButtonDown = isKeydown;
+        break;
+    case SDL_SCANCODE_R:
+        bts->rButtonDown = isKeydown;
+        break;
+    }
+}
 
 int main(int argc, char** argv)
 {
-    // Load the board from an rse file if the user specifies a file
-    // NOTE: The code for reading the file in still needs to be implemented
-    bool load_from_file = argc == 2;
-    char filename[ FILENAME_BUFFER_SIZE ];
-    if ( load_from_file )
-    {
-        strcpy_s( filename, FILENAME_BUFFER_SIZE, argv[ 1 ] );
-    }
-
-    const int STARTING_POPULATION = 20000;
     // Setup SDL
     if ( SDL_Init( SDL_INIT_VIDEO ) )
     {
         fprintf( stderr, "error initializing SDL: %s\n", SDL_GetError( ) );
-        return 1;
+        goto SDLInitializationError;
     }
 
     // Create a window
@@ -79,8 +103,7 @@ int main(int argc, char** argv)
     if ( !window )
     {
         fprintf( stderr, "error creating window: %s\n", SDL_GetError( ) );
-        SDL_Quit( );
-        return 1;
+        goto WindowCreationError;
     }
     // Create a renderer
     // NOTE: Handle multiple generations per frame if SDL_RENDERER_PRESENTVSYNC is set
@@ -88,9 +111,7 @@ int main(int argc, char** argv)
     if ( !renderer )
     {
         fprintf( stderr, "error creating renderer: %s\n", SDL_GetError( ) );
-        SDL_DestroyWindow( window );
-        SDL_Quit( );
-        return 1;
+        goto RendererCreationError;
     }
 
 
@@ -105,7 +126,6 @@ int main(int argc, char** argv)
     player_view.window_width = window_width;
     player_view.movement_speed_in_cells = 3;
     player_view.min_movement_speed_in_pixels = player_view.movement_speed_in_cells * player_view.cell_size;
-    // TODO: Add support for rse files
     const int BOARD_HEIGHT = player_view.window_height / 4;
     const int BOARD_WIDTH = player_view.window_width / 4;
     board* cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
@@ -115,8 +135,8 @@ int main(int argc, char** argv)
 
     int living_cells = 0;
     SDL_Event e;
-    Uint32 last_update_time = 1000;
-    unsigned int refresh_rate = 1000;
+    Uint32 last_update_time = 0;
+    Uint32 ticks_per_lifecycle = 1000;
 
     uint8_t quit = FALSE;
     uint8_t paused = FALSE;
@@ -140,46 +160,14 @@ int main(int argc, char** argv)
             else if ( e.type == SDL_KEYDOWN || e.type == SDL_KEYUP )
             {
                 bool isKeydown = e.type == SDL_KEYDOWN;
+                update_button_states( &keys, e, isKeydown);
                 switch ( e.key.keysym.scancode )
                 {
-                case SDL_SCANCODE_W:
-                    keys.wButtonDown = isKeydown;
-                    break;
-                case SDL_SCANCODE_A:
-                    keys.aButtonDown = isKeydown;
-                    break;
-                case SDL_SCANCODE_S:
-                    keys.sButtonDown = isKeydown;
-                    break;
-                case SDL_SCANCODE_D:
-                    keys.dButtonDown = isKeydown;
-                    break;
                 case SDL_SCANCODE_SPACE:
                     paused = isKeydown ^ paused;
                     break;
                 case SDL_SCANCODE_Q:
                     quit = TRUE;
-                    break;
-                case SDL_SCANCODE_UP:
-                    keys.upButtonDown = isKeydown;
-                    break;
-                case SDL_SCANCODE_DOWN:
-                    keys.downButtonDown = isKeydown;
-                    break;
-                case SDL_SCANCODE_K:
-                    if ( isKeydown )
-                    {
-                        kill_all_cells( cell_board );
-                    }
-                    break;
-                case SDL_SCANCODE_R:
-                    if ( isKeydown )
-                    {
-                        free( cell_board );
-                        cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
-                    }
-                    break;
-                default:
                     break;
                 }
 
@@ -200,7 +188,7 @@ int main(int argc, char** argv)
             }
         }
 
-        // React to the W, A, S, D, up and down keys
+        // React to presses of supported keys
         if ( keys.aButtonDown )
         {
             move_camera_by( -player_view.movement_speed_in_cells, 0, &player_view, cell_board, window );
@@ -217,18 +205,29 @@ int main(int argc, char** argv)
         {
             move_camera_by( player_view.movement_speed_in_cells, 0, &player_view, cell_board, window );
         }
+        if ( keys.kButtonDown )
+        {
+            kill_all_cells( cell_board );
+            keys.kButtonDown = FALSE;
+        }
+        if ( keys.rButtonDown )
+        {
+            free( cell_board );
+            cell_board = init_board( BOARD_HEIGHT, BOARD_WIDTH, STARTING_POPULATION );
+            keys.rButtonDown = FALSE;
+        }
         if ( keys.upButtonDown )
         {
-            if ( refresh_rate > 100 )
+            if ( ticks_per_lifecycle > 100 )
             {
-                refresh_rate -= 100;
+                ticks_per_lifecycle -= 100;
             }
         }
         if ( keys.downButtonDown )
         {
-            if ( refresh_rate < 10000 )
+            if ( ticks_per_lifecycle < 10000 )
             {
-                refresh_rate += 100;
+                ticks_per_lifecycle += 100;
             }
         }
         if ( mouse.leftButtonPressed )
@@ -246,8 +245,8 @@ int main(int argc, char** argv)
                 mouse.last_cursor_y = cursor_y;
             }
         }
-        // Only update the board at the interval stored in refresh_rate
-        if ( !( ( SDL_GetTicks( ) - last_update_time ) < refresh_rate ) && !paused )
+        // Only update the board at the interval stored in ticks_per_lifecycle
+        if ( !( ( SDL_GetTicks( ) - last_update_time ) < ticks_per_lifecycle ) && !paused )
         {
             living_cells = update_board( cell_board );
             last_update_time = SDL_GetTicks( );
@@ -265,9 +264,12 @@ int main(int argc, char** argv)
     // Clean up and exit
     free( cell_board );
     SDL_DestroyRenderer( renderer );
+    RendererCreationError:
     SDL_DestroyWindow( window );
     SDL_QuitSubSystem( flags );
+    WindowCreationError:
     SDL_Quit( );
+    SDLInitializationError:
     return EXIT_SUCCESS;
 }
 

@@ -49,37 +49,7 @@ typedef struct
 
 const Uint32 STARTING_POPULATION = 20000;
 
-
-void update_button_states( buttons *bts, SDL_Event e, bool isKeydown )
-{
-    switch ( e.key.keysym.scancode )
-    {
-    case SDL_SCANCODE_W:
-        bts->wButtonDown = isKeydown;
-        break;
-    case SDL_SCANCODE_A:
-        bts->aButtonDown = isKeydown;
-        break;
-    case SDL_SCANCODE_S:
-        bts->sButtonDown = isKeydown;
-        break;
-    case SDL_SCANCODE_D:
-        bts->dButtonDown = isKeydown;
-        break;
-    case SDL_SCANCODE_UP:
-        bts->upButtonDown = isKeydown;
-        break;
-    case SDL_SCANCODE_DOWN:
-        bts->downButtonDown = isKeydown;
-        break;
-    case SDL_SCANCODE_K:
-        bts->kButtonDown = isKeydown;
-        break;
-    case SDL_SCANCODE_R:
-        bts->rButtonDown = isKeydown;
-        break;
-    }
-}
+void update_button_states( buttons *bts, SDL_Event e, bool isKeydown );
 
 int main(int argc, char** argv)
 {
@@ -273,3 +243,33 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
+void update_button_states( buttons *bts, SDL_Event e, bool isKeydown )
+{
+  switch ( e.key.keysym.scancode )
+    {
+    case SDL_SCANCODE_W:
+      bts->wButtonDown = isKeydown;
+      break;
+    case SDL_SCANCODE_A:
+      bts->aButtonDown = isKeydown;
+      break;
+    case SDL_SCANCODE_S:
+      bts->sButtonDown = isKeydown;
+      break;
+    case SDL_SCANCODE_D:
+      bts->dButtonDown = isKeydown;
+      break;
+    case SDL_SCANCODE_UP:
+      bts->upButtonDown = isKeydown;
+      break;
+    case SDL_SCANCODE_DOWN:
+      bts->downButtonDown = isKeydown;
+      break;
+    case SDL_SCANCODE_K:
+      bts->kButtonDown = isKeydown;
+      break;
+    case SDL_SCANCODE_R:
+      bts->rButtonDown = isKeydown;
+      break;
+    }
+}

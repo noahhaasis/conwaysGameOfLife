@@ -97,7 +97,6 @@ int update_board( board* b )
     temp_board->rows = b->rows;
     temp_board->columns = b->columns;
 
-    // Iterate over the given board
     int living_cells_count = 0;
     for ( int y = 0; y < b->rows; y++ )
     {

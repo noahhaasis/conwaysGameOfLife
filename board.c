@@ -7,7 +7,7 @@
 
 inline bool change_cell_state( int x, int y, bool state, board *b );
 
-/* Returns min or max if num is less then or greater then either of them. */
+/* Returns min or max if num is less then or greater than either of them. */
 int clamp( int min, int max, int num)
 {
     if ( num < min ) { return min; }
